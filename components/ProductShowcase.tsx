@@ -78,8 +78,17 @@ function SplashBanner() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
   const fRef = useRef(0);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) return;
     initPools();
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -113,7 +122,11 @@ function SplashBanner() {
     const onResize = () => draw();
     window.addEventListener('resize', onResize);
     return () => { cancelAnimationFrame(rafRef.current); window.removeEventListener('resize', onResize); };
-  }, []);
+  }, [isMobile]);
+
+  if (isMobile) {
+    return <img src="/frames/splash_0.png" className="absolute inset-0 w-full h-full object-cover opacity-50" alt="splash" />;
+  }
 
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />;
 }
@@ -123,22 +136,33 @@ function Card3D({ product, index }: { product: typeof coffeeProducts[0]; index: 
   const [rotateX, setRotateX] = useState(0);
   const [rotateY, setRotateY] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  useEffect(() => { initPools(); }, []);
+  useEffect(() => { 
+    setIsMobile(window.innerWidth < 768);
+    initPools(); 
+  }, []);
 
   const framePrefix = CARD_FRAMES[product.id] || 'latte';
 
   const onMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (isMobile) return;
     const el = cardRef.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
     setRotateX(((e.clientY - r.top - r.height / 2) / (r.height / 2)) * -12);
     setRotateY(((e.clientX - r.left - r.width / 2) / (r.width / 2)) * 12);
-  }, []);
+  }, [isMobile]);
 
   const onLeave = useCallback(() => {
+    if (isMobile) return;
     setRotateX(0); setRotateY(0); setIsHovered(false);
-  }, []);
+  }, [isMobile]);
+
+  const onEnter = useCallback(() => {
+    if (isMobile) return;
+    setIsHovered(true);
+  }, [isMobile]);
 
   return (
     <motion.div
@@ -151,7 +175,7 @@ function Card3D({ product, index }: { product: typeof coffeeProducts[0]; index: 
       <motion.div
         ref={cardRef}
         onMouseMove={onMove}
-        onMouseEnter={() => setIsHovered(true)}
+        onMouseEnter={onEnter}
         onMouseLeave={onLeave}
         animate={{ rotateX, rotateY, scale: isHovered ? 1.03 : 1 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}

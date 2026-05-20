@@ -6,23 +6,19 @@ import { motion, useSpring, useTransform } from 'framer-motion';
 const TOTAL_FRAMES = 192;
 const FRAME_PATH = '/frames';
 
+// Header height constants (must match Header.tsx h-16 md:h-20)
+const HEADER_H_MOBILE = 64;  // h-16 = 4rem = 64px
+const HEADER_H_DESKTOP = 80; // h-20 = 5rem = 80px
+
 export default function HeroCanvasAnimation() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imagesRef = useRef<HTMLImageElement[]>([]);
-  const progressRef = useRef(0);
 
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
 
-  const springProgress = useSpring(0, {
-    stiffness: 80,
-    damping: 25,
-    restDelta: 0.001,
-  });
-
-  const frameIndex = useTransform(springProgress, [0, 1], [0, TOTAL_FRAMES - 1]);
-  const yOffset = useTransform(springProgress, [0, 1], [0, -30]);
+  const springProgress = useSpring(0, { stiffness: 80, damping: 25, restDelta: 0.001 });
 
   const s1Opacity = useTransform(springProgress, [0, 0.08, 0.18, 0.24], [0, 1, 1, 0]);
   const s2Opacity = useTransform(springProgress, [0.28, 0.35, 0.5, 0.56], [0, 1, 1, 0]);
@@ -30,47 +26,66 @@ export default function HeroCanvasAnimation() {
   const s4Opacity = useTransform(springProgress, [0.9, 0.94, 0.99, 1], [0, 1, 1, 0]);
   const indicatorOpacity = useTransform(springProgress, [0, 0.08], [1, 0]);
 
-  const renderFrame = useCallback(() => {
+  // Returns the current header height based on viewport width
+  const getHeaderHeight = useCallback(() => {
+    return window.innerWidth >= 768 ? HEADER_H_DESKTOP : HEADER_H_MOBILE;
+  }, []);
+
+  // Resize canvas pixel buffer to match its actual CSS size × DPR
+  // Called in the RAF loop every frame so it self-heals if initial size was 0
+  const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) return false;
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = canvas.clientWidth;
+    const cssH = canvas.clientHeight;
+    if (cssW === 0 || cssH === 0) return false;
+    const targetW = Math.round(cssW * dpr);
+    const targetH = Math.round(cssH * dpr);
+    if (canvas.width === targetW && canvas.height === targetH) return true; // already correct
+    canvas.width = targetW;
+    canvas.height = targetH;
+    return true;
+  }, []);
+
+  // Draw a single frame — cover mode (always fills full canvas, no black bars)
+  const drawFrame = useCallback((frameIdx: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas || canvas.width === 0 || canvas.height === 0) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const currentFrame = Math.round(frameIndex.get());
-    const img = imagesRef.current[Math.max(0, Math.min(currentFrame, TOTAL_FRAMES - 1))];
-    if (!img?.complete || !img.naturalWidth) return;
+    const idx = Math.max(0, Math.min(Math.round(frameIdx), TOTAL_FRAMES - 1));
+    const img = imagesRef.current[idx];
+    if (!img || !img.complete || !img.naturalWidth) return;
 
-    const dpr = window.devicePixelRatio || 1;
-    const w = window.innerWidth;
-    const h = window.innerHeight;
+    const W = canvas.width;
+    const H = canvas.height;
 
-    canvas.width = w * dpr;
-    canvas.height = h * dpr;
-    canvas.style.width = `${w}px`;
-    canvas.style.height = `${h}px`;
-    ctx.scale(dpr, dpr);
-
+    // COVER mode: always fill the entire canvas, crop if needed
     const imgRatio = img.naturalWidth / img.naturalHeight;
-    const viewRatio = w / h;
+    const viewRatio = W / H;
 
     let drawW, drawH, drawX, drawY;
     if (imgRatio > viewRatio) {
-      drawH = h;
-      drawW = h * imgRatio;
-      drawX = (w - drawW) / 2;
+      // Image is wider than viewport: fit by height, crop sides
+      drawH = H;
+      drawW = H * imgRatio;
+      drawX = (W - drawW) / 2;
       drawY = 0;
     } else {
-      drawW = w;
-      drawH = w / imgRatio;
+      // Image is taller than viewport: fit by width, crop top/bottom
+      drawW = W;
+      drawH = W / imgRatio;
       drawX = 0;
-      drawY = (h - drawH) / 2;
+      drawY = (H - drawH) / 2;
     }
 
-    ctx.clearRect(0, 0, w, h);
+    ctx.clearRect(0, 0, W, H);
     ctx.drawImage(img, drawX, drawY, drawW, drawH);
-  }, [frameIndex]);
+  }, []);
 
-  // Preload frames
+  // Preload all frames
   useEffect(() => {
     let loaded = 0;
     const images: HTMLImageElement[] = new Array(TOTAL_FRAMES);
@@ -92,48 +107,58 @@ export default function HeroCanvasAnimation() {
     }
   }, []);
 
-  // Scroll tracking — runs AFTER images loaded so DOM is fully rendered
+  // RAF render loop — starts after images load
   useEffect(() => {
     if (!imagesLoaded) return;
 
-    const getProgress = () => {
+    const getScrollProgress = () => {
       const container = containerRef.current;
       if (!container) return 0;
       const rect = container.getBoundingClientRect();
       const scrollable = container.offsetHeight - window.innerHeight;
+      if (scrollable <= 0) return 0;
       const scrolled = -rect.top;
       return Math.max(0, Math.min(1, scrolled / scrollable));
     };
 
-    const handleScroll = () => {
-      const p = getProgress();
-      progressRef.current = p;
-      springProgress.set(p);
+    let rafId: number;
+    let lastRenderedFrame = -1;
+
+    const loop = () => {
+      // Self-healing resize: if canvas was 0×0 at init, fix it now
+      const resized = resizeCanvas();
+
+      if (resized) {
+        const p = getScrollProgress();
+        const frameToRender = Math.round(p * (TOTAL_FRAMES - 1));
+
+        if (frameToRender !== lastRenderedFrame) {
+          drawFrame(frameToRender);
+          lastRenderedFrame = frameToRender;
+        }
+
+        springProgress.set(p);
+      }
+
+      rafId = requestAnimationFrame(loop);
     };
 
-    // Set initial value
-    handleScroll();
+    rafId = requestAnimationFrame(loop);
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
+    const handleResize = () => {
+      resizeCanvas();
+      const p = getScrollProgress();
+      drawFrame(Math.round(p * (TOTAL_FRAMES - 1)));
+      lastRenderedFrame = -1;
     };
-  }, [imagesLoaded, springProgress]);
 
-  // Canvas render
-  useEffect(() => {
-    if (!imagesLoaded) return;
-    renderFrame();
-    const unsubscribe = frameIndex.on('change', renderFrame);
-    const handleResize = () => renderFrame();
     window.addEventListener('resize', handleResize);
+
     return () => {
-      unsubscribe();
+      cancelAnimationFrame(rafId);
       window.removeEventListener('resize', handleResize);
     };
-  }, [imagesLoaded, renderFrame, frameIndex]);
+  }, [imagesLoaded, resizeCanvas, drawFrame, springProgress]);
 
   if (!imagesLoaded) {
     return (
@@ -156,14 +181,29 @@ export default function HeroCanvasAnimation() {
 
   return (
     <div ref={containerRef} className="relative h-[600vh]">
-      <div className="sticky top-0 w-full h-screen overflow-hidden bg-[#1A0F0A]">
+      {/*
+        KEY FIX: sticky top-16 md:top-20 puts canvas BELOW the fixed header.
+        Height = 100vh minus header = full visible area below nav.
+        This ensures ALL animation frames are fully visible (nothing cut off by header).
+        position:sticky works because no ancestor has overflow:hidden/clip.
+      */}
+      <div
+        className="sticky w-full bg-[#1A0F0A]"
+        style={{
+          top: 'var(--header-h, 64px)',
+          height: 'calc(var(--vh, 100vh) - var(--header-h, 64px))',
+        }}
+      >
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0"
+          style={{ display: 'block', width: '100%', height: '100%' }}
+        />
 
-        <motion.div style={{ y: yOffset }} className="absolute inset-0 w-full h-full">
-          <canvas ref={canvasRef} className="block w-full h-full" />
-        </motion.div>
-
+        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 pointer-events-none" />
 
+        {/* Scene 1 */}
         <motion.div style={{ opacity: s1Opacity }}
           className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pointer-events-none">
           <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-amber-50 leading-none tracking-tight mb-4"
@@ -175,6 +215,7 @@ export default function HeroCanvasAnimation() {
           </p>
         </motion.div>
 
+        {/* Scene 2 */}
         <motion.div style={{ opacity: s2Opacity }}
           className="absolute inset-0 flex flex-col justify-center px-8 sm:px-16 md:px-24 pointer-events-none">
           <h2 className="text-4xl sm:text-6xl md:text-7xl font-semibold text-amber-50 leading-tight mb-4 max-w-xl"
@@ -186,6 +227,7 @@ export default function HeroCanvasAnimation() {
           </p>
         </motion.div>
 
+        {/* Scene 3 */}
         <motion.div style={{ opacity: s3Opacity }}
           className="absolute inset-0 flex flex-col justify-center items-end px-8 sm:px-16 md:px-24 pointer-events-none">
           <h2 className="text-4xl sm:text-6xl md:text-7xl font-semibold text-amber-50 leading-tight mb-4 max-w-xl text-right"
@@ -197,6 +239,7 @@ export default function HeroCanvasAnimation() {
           </p>
         </motion.div>
 
+        {/* Scene 4 */}
         <motion.div style={{ opacity: s4Opacity }}
           className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pointer-events-none">
           <h2 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-amber-50 leading-tight mb-8"
@@ -206,11 +249,13 @@ export default function HeroCanvasAnimation() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            onClick={() => document.getElementById('menu')?.scrollIntoView({ behavior: 'smooth' })}
             className="px-8 sm:px-12 py-4 bg-gradient-to-r from-[#4F9C8F] to-[#3D8B7F] text-white rounded-full text-base sm:text-lg font-semibold shadow-2xl pointer-events-auto">
             Explore Collection ↓
           </motion.button>
         </motion.div>
 
+        {/* Scroll indicator */}
         <motion.div style={{ opacity: indicatorOpacity }}
           className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 pointer-events-none">
           <p className="text-amber-100/50 text-xs tracking-[0.25em] uppercase">Scroll to explore</p>

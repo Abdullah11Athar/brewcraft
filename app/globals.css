@@ -10,9 +10,14 @@
 }
 
 @layer base {
+  html {
+    overflow-x: clip;
+  }
+
   body {
     @apply bg-[#1A0F0A] text-[#F5E6D3] antialiased;
     font-family: var(--font-inter);
+    overflow-x: clip;
   }
 
   ::selection {

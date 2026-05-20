@@ -7,8 +7,18 @@ import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 function AtmosphereCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) return; // Disable on mobile to save performance and fix overlapping issue
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -139,7 +149,9 @@ function AtmosphereCanvas() {
       cancelAnimationFrame(rafRef.current);
       window.removeEventListener('resize', resize);
     };
-  }, []);
+  }, [isMobile]);
+
+  if (isMobile) return null;
 
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />;
 }
@@ -167,14 +179,19 @@ function MagneticButton() {
   const springX = useSpring(pos.x, { stiffness: 200, damping: 20 });
   const springY = useSpring(pos.y, { stiffness: 200, damping: 20 });
 
+  const handleClick = () => {
+    document.getElementById('menu')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <motion.button
       ref={btnRef}
       onMouseMove={onMove}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={onLeave}
+      onClick={handleClick}
       style={{ x: springX, y: springY }}
-      className="relative px-16 py-5 rounded-full text-lg font-semibold text-white overflow-hidden group"
+      className="relative px-8 sm:px-12 md:px-16 py-4 md:py-5 rounded-full text-base md:text-lg font-semibold text-white overflow-hidden group"
     >
       {/* Base */}
       <div className="absolute inset-0 bg-gradient-to-r from-[#4F9C8F] to-[#2d7a6e] rounded-full" />
@@ -210,7 +227,7 @@ export default function FinalCTA() {
   const words = ['Find', 'the', 'Perfect', 'Coffee', 'for', 'You'];
 
   return (
-    <section ref={ref} className="relative py-48 px-4 overflow-hidden min-h-screen flex items-center">
+    <section ref={ref} className="relative py-24 md:py-36 lg:py-48 px-4 overflow-hidden min-h-screen flex items-center">
       {/* Deep background */}
       <div className="absolute inset-0 bg-[#050201]" />
 
@@ -262,7 +279,7 @@ export default function FinalCTA() {
         </motion.div>
 
         {/* Word-by-word headline */}
-        <h2 className="text-6xl md:text-8xl font-bold text-[#F5E6D3] leading-tight mb-8 flex flex-wrap justify-center gap-x-6"
+        <h2 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-[#F5E6D3] leading-tight mb-8 flex flex-wrap justify-center gap-x-4 md:gap-x-6"
           style={{ fontFamily: 'Playfair Display, serif' }}>
           {words.map((word, i) => (
             <motion.span
@@ -313,7 +330,7 @@ export default function FinalCTA() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.8 }}
-          className="mt-20 flex items-center justify-center gap-12 md:gap-20"
+          className="mt-16 md:mt-20 flex flex-wrap items-center justify-center gap-8 sm:gap-12 md:gap-20"
         >
           {[
             { num: '15+', label: 'Blends' },

@@ -96,7 +96,7 @@ function BeanOrbitCanvas() {
 export default function FeatureSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] });
-  const cupY = useTransform(scrollYProgress, [0, 1], [30, -30]);
+  const cupY = useTransform(scrollYProgress, [0, 1], [-15, 15]);
 
   return (
     <section ref={sectionRef} className="relative py-20 md:py-32 px-4 md:px-8 overflow-hidden">
@@ -114,7 +114,7 @@ export default function FeatureSection() {
           </motion.h2>
         </div>
 
-        <div className="flex flex-col lg:grid lg:grid-cols-3 gap-8 items-center">
+        <div className="flex flex-col lg:grid lg:grid-cols-3 gap-8 items-stretch">
           {/* Left */}
           <div className="w-full space-y-5 order-2 lg:order-1">
             {features.filter(f => f.position === 'left').map((feature, i) => (
@@ -137,30 +137,35 @@ export default function FeatureSection() {
 
           {/* Center — cup + beans — PERFECTLY centered */}
           <motion.div style={{ y: cupY }}
-            className="order-1 lg:order-2 flex items-center justify-center w-full">
-            <div className="relative" style={{ width: 400, height: 400 }}>
+            className="order-1 lg:order-2 flex items-center justify-center w-full self-stretch py-6 lg:py-0">
+            {/* Responsive container: 260px mobile → 320px tablet → 400px desktop */}
+            <div className="relative w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] lg:w-[400px] lg:h-[400px]">
               <BeanOrbitCanvas />
               {/* Glow */}
               <div className="absolute rounded-full blur-3xl pointer-events-none"
-                style={{ width: 180, height: 180, top: '50%', left: '50%', transform: 'translate(-50%,-50%)', background: 'rgba(212,165,116,0.1)' }} />
-              {/* Cup — pixel perfect center */}
-              <motion.img
-                src="/coffee/cup-centered.png"
-                alt="BrewCraft Cup"
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                style={{
-                  position: 'absolute',
-                  width: 170,
-                  height: 170,
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  objectFit: 'contain',
-                  filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.9))',
-                  zIndex: 10,
-                }}
-              />
+                style={{ width: '45%', height: '45%', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', background: 'rgba(212,165,116,0.1)' }} />
+              {/* Cup — wrapper div handles centering, motion.img handles float animation */}
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 10,
+              }} className="w-[110px] h-[110px] sm:w-[135px] sm:h-[135px] lg:w-[170px] lg:h-[170px]">
+                <motion.img
+                  src="/coffee/cup-centered.png"
+                  alt="BrewCraft Cup"
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.9))',
+                    display: 'block',
+                  }}
+                />
+              </div>
             </div>
           </motion.div>
 
