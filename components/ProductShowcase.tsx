@@ -22,7 +22,7 @@ function initPools() {
     pools[prefix] = [];
     for (let i = 0; i < TOTAL; i++) {
       const img = new Image();
-      img.src = `${FRAMES_PATH}/${prefix}_${i}.png`;
+      img.src = `${FRAMES_PATH}/${prefix}_${i}.webp`;
       pools[prefix].push(img);
     }
   });
@@ -77,7 +77,7 @@ function FrameCanvas({ prefix, isHovered }: { prefix: string; isHovered: boolean
 function SplashBanner() {
   return (
     <div className="absolute inset-0 pointer-events-none opacity-60">
-      <img src="/frames/splash_0.png" className="w-full h-full object-cover opacity-50" alt="splash background" />
+      <img src="/frames/splash_0.webp" className="w-full h-full object-cover opacity-50" alt="splash background" />
     </div>
   );
 }
