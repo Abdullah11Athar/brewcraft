@@ -18,7 +18,7 @@ let poolsReady = false;
 function initPools() {
   if (poolsReady) return;
   poolsReady = true;
-  ['latte', 'latte2', 'mocha', 'splash'].forEach(prefix => {
+  ['latte', 'latte2', 'mocha'].forEach(prefix => {
     pools[prefix] = [];
     for (let i = 0; i < TOTAL; i++) {
       const img = new Image();
@@ -75,60 +75,11 @@ function FrameCanvas({ prefix, isHovered }: { prefix: string; isHovered: boolean
 }
 
 function SplashBanner() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rafRef = useRef<number>(0);
-  const fRef = useRef(0);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    setIsMobile(window.innerWidth < 768);
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    if (isMobile) return;
-    initPools();
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const draw = () => {
-      const imgs = pools['splash'] || [];
-      const img = imgs[Math.round(fRef.current) % TOTAL];
-      if (!img?.complete || !img.naturalWidth) return;
-      const W = canvas.offsetWidth || 1200;
-      const H = canvas.offsetHeight || 580;
-      if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }
-      ctx.clearRect(0, 0, W, H);
-      const s = Math.max(W / img.naturalWidth, H / img.naturalHeight);
-      const w = img.naturalWidth * s;
-      const h = img.naturalHeight * s;
-      ctx.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
-    };
-
-    const tick = () => {
-      fRef.current = (fRef.current + 0.35) % TOTAL;
-      draw();
-      rafRef.current = requestAnimationFrame(tick);
-    };
-
-    const imgs = pools['splash'] || [];
-    if (imgs[0]?.complete) rafRef.current = requestAnimationFrame(tick);
-    else imgs[0].onload = () => { rafRef.current = requestAnimationFrame(tick); };
-
-    const onResize = () => draw();
-    window.addEventListener('resize', onResize);
-    return () => { cancelAnimationFrame(rafRef.current); window.removeEventListener('resize', onResize); };
-  }, [isMobile]);
-
-  if (isMobile) {
-    return <img src="/frames/splash_0.png" className="absolute inset-0 w-full h-full object-cover opacity-50" alt="splash" />;
-  }
-
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />;
+  return (
+    <div className="absolute inset-0 pointer-events-none opacity-60">
+      <img src="/frames/splash_0.png" className="w-full h-full object-cover opacity-50" alt="splash background" />
+    </div>
+  );
 }
 
 function Card3D({ product, index }: { product: typeof coffeeProducts[0]; index: number }) {
