@@ -19,8 +19,8 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <button onClick={() => scrollTo('#top')} className="flex items-center gap-2 mb-4">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#D4A574] to-[#8B4513] flex items-center justify-center">
-                <span className="text-white font-bold">B</span>
+              <div className="w-9 h-9 flex items-center justify-center">
+                <img src="/logo.png" alt="BrewCraft Logo" className="w-full h-full object-contain drop-shadow-md" />
               </div>
               <span className="text-[#F5E6D3] font-bold text-xl"
                 style={{ fontFamily: 'Playfair Display, serif' }}>
