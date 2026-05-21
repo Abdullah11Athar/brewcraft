@@ -97,7 +97,11 @@ function SplashBanner() {
       const s = Math.max(W / img.naturalWidth, H / img.naturalHeight);
       const w = img.naturalWidth * s;
       const h = img.naturalHeight * s;
-      ctx.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+      let drawX = (W - w) / 2;
+      if (window.innerWidth < 768) {
+        drawX += W * 0.15; // Shift right on mobile to center the splash glass
+      }
+      ctx.drawImage(img, drawX, (H - h) / 2, w, h);
     };
 
     const tick = () => {
@@ -194,10 +198,10 @@ function Card3D({ product, index }: { product: typeof coffeeProducts[0]; index: 
           </div>
 
           {/* Image — no green glow, just clean */}
-          <div className="relative w-full h-52 sm:h-52 md:h-52 rounded-xl overflow-hidden mb-5 bg-[#1e0f08]"
+          <div className="relative w-full aspect-[4/3] md:aspect-[1.3] rounded-xl overflow-hidden mb-5 bg-[#1e0f08]"
             style={{ transform: 'translateZ(20px)' }}>
             <motion.img src={product.image} alt={product.name}
-              className="absolute inset-0 w-full h-full object-contain"
+              className="absolute inset-0 w-full h-full object-cover object-center"
               animate={{ opacity: isHovered ? 0 : 1 }}
               transition={{ duration: 0.3 }} />
             <FrameCanvas prefix={framePrefix} isHovered={isHovered} />

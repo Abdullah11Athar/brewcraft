@@ -64,24 +64,27 @@ export default function HeroCanvasAnimation() {
 
     // COVER mode: always fill the entire canvas, crop if needed
     const imgRatio = img.naturalWidth / img.naturalHeight;
-    const viewRatio = W / H;
+    const viewRatio = w / h;
 
     let drawW, drawH, drawX, drawY;
     if (imgRatio > viewRatio) {
-      // Image is wider than viewport: fit by height, crop sides
-      drawH = H;
-      drawW = H * imgRatio;
-      drawX = (W - drawW) / 2;
+      drawH = h;
+      drawW = h * imgRatio;
+      drawX = (w - drawW) / 2;
       drawY = 0;
     } else {
-      // Image is taller than viewport: fit by width, crop top/bottom
-      drawW = W;
-      drawH = W / imgRatio;
+      drawW = w;
+      drawH = w / imgRatio;
       drawX = 0;
-      drawY = (H - drawH) / 2;
+      drawY = (h - drawH) / 2;
     }
 
-    ctx.clearRect(0, 0, W, H);
+    // Shift image to the right on mobile so the cup is perfectly centered
+    if (w < 768) {
+      drawX += w * 0.20; 
+    }
+
+    ctx.clearRect(0, 0, w, h);
     ctx.drawImage(img, drawX, drawY, drawW, drawH);
   }, []);
 
