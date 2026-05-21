@@ -81,7 +81,7 @@ export default function HeroCanvasAnimation() {
 
     // Shift image to the right on mobile so the cup is perfectly centered
     if (window.innerWidth < 768) {
-      drawX += W * 0.20; 
+      drawX += W * 0.08; 
     }
 
     ctx.clearRect(0, 0, W, H);

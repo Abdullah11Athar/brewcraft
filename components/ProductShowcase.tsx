@@ -99,7 +99,7 @@ function SplashBanner() {
       const h = img.naturalHeight * s;
       let drawX = (W - w) / 2;
       if (window.innerWidth < 768) {
-        drawX += W * 0.15; // Shift right on mobile to center the splash glass
+        drawX += W * 0.08; // Shift right on mobile to center the splash glass
       }
       ctx.drawImage(img, drawX, (H - h) / 2, w, h);
     };
