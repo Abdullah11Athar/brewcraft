@@ -155,6 +155,12 @@ function Card3D({ product, index }: { product: typeof coffeeProducts[0]; index: 
     setIsHovered(true);
   }, [isMobile]);
 
+  const onCardClick = useCallback(() => {
+    if (isMobile) {
+      setIsHovered(prev => !prev);
+    }
+  }, [isMobile]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 60 }}
@@ -168,6 +174,7 @@ function Card3D({ product, index }: { product: typeof coffeeProducts[0]; index: 
         onMouseMove={onMove}
         onMouseEnter={onEnter}
         onMouseLeave={onLeave}
+        onClick={onCardClick}
         animate={{ rotateX, rotateY, scale: isHovered ? 1.03 : 1 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         style={{ transformStyle: 'preserve-3d' }}
@@ -187,10 +194,10 @@ function Card3D({ product, index }: { product: typeof coffeeProducts[0]; index: 
           </div>
 
           {/* Image — no green glow, just clean */}
-          <div className="relative w-full h-52 sm:h-52 md:h-52 rounded-xl overflow-hidden mb-5"
+          <div className="relative w-full h-52 sm:h-52 md:h-52 rounded-xl overflow-hidden mb-5 bg-[#1e0f08]"
             style={{ transform: 'translateZ(20px)' }}>
             <motion.img src={product.image} alt={product.name}
-              className="absolute inset-0 w-full h-full object-cover object-center"
+              className="absolute inset-0 w-full h-full object-contain"
               animate={{ opacity: isHovered ? 0 : 1 }}
               transition={{ duration: 0.3 }} />
             <FrameCanvas prefix={framePrefix} isHovered={isHovered} />
