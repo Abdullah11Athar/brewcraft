@@ -39,7 +39,7 @@ export default function Header() {
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
     >
       <motion.div
-        className="absolute inset-0 border-b border-[#3D2820]/60 backdrop-blur-xl"
+        className="absolute inset-0 border-b border-[#3D2820]/60 backdrop-blur-xl pointer-events-none"
         style={{ backgroundColor: `rgba(10,3,0,${scrolled ? 0.92 : 0})`, opacity: bgOpacity }}
       />
       <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 h-16 md:h-20 flex items-center justify-between">
@@ -71,7 +71,7 @@ export default function Header() {
 
         {/* Mobile hamburger */}
         <button onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden flex flex-col gap-[5px] p-2">
+          className="relative z-50 md:hidden flex flex-col gap-[5px] p-2">
           {[0, 1, 2].map(i => (
             <motion.div key={i} className="w-5 h-[2px] bg-[#F5E6D3] rounded-full"
               animate={{
@@ -89,12 +89,13 @@ export default function Header() {
         initial={false}
         animate={{ height: menuOpen ? 'auto' : 0, opacity: menuOpen ? 1 : 0 }}
         transition={{ duration: 0.3 }}
-        className="md:hidden overflow-hidden bg-[#0a0300]/95 backdrop-blur-xl border-b border-[#3D2820]/50"
+        className="relative z-20 md:hidden overflow-hidden bg-[#0a0300]/95 backdrop-blur-xl border-b border-[#3D2820]/50"
+        style={{ pointerEvents: menuOpen ? 'auto' : 'none' }}
       >
         <div className="px-4 py-4 flex flex-col gap-3">
           {navLinks.map(link => (
             <button key={link.href} onClick={() => scrollTo(link.href)}
-              className="text-left text-[#C9B8A0] hover:text-[#F5E6D3] py-2 text-sm tracking-wide border-b border-[#3D2820]/30 transition-colors">
+              className="block w-full text-left text-[#C9B8A0] hover:text-[#F5E6D3] py-3 text-sm tracking-wide border-b border-[#3D2820]/30 transition-colors">
               {link.label}
             </button>
           ))}
