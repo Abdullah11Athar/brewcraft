@@ -23,12 +23,14 @@ export default function Header() {
 
   const scrollTo = (href: string) => {
     setMenuOpen(false);
-    if (href === '#top') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-    const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+      if (href === '#top') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      const el = document.querySelector(href);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
   return (
