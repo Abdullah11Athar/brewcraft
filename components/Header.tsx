@@ -21,15 +21,7 @@ export default function Header() {
     return unsub;
   }, [scrollY]);
 
-  const scrollTo = (href: string) => {
-    setMenuOpen(false);
-    if (href === '#top') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-    const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
+  const closeMenu = () => setMenuOpen(false);
 
   return (
     <motion.header
@@ -44,7 +36,7 @@ export default function Header() {
       />
       <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 h-16 md:h-20 flex items-center justify-between">
         {/* Logo */}
-        <button onClick={() => scrollTo('#top')} className="flex items-center gap-2 group">
+        <a href="#top" onClick={closeMenu} className="flex items-center gap-2 group">
           <div className="w-9 h-9 flex items-center justify-center">
             <img src="/logo.png" alt="BrewCraft Logo" className="w-full h-full object-contain drop-shadow-md" />
           </div>
@@ -52,21 +44,21 @@ export default function Header() {
             style={{ fontFamily: 'Playfair Display, serif' }}>
             Brew<span className="text-[#4F9C8F]">Craft</span>
           </span>
-        </button>
+        </a>
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-8">
           {navLinks.map(link => (
-            <button key={link.href} onClick={() => scrollTo(link.href)}
+            <a key={link.href} href={link.href} onClick={closeMenu}
               className="text-[#C9B8A0] hover:text-[#F5E6D3] text-sm tracking-wide transition-colors duration-200 relative group">
               {link.label}
               <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-[#4F9C8F] group-hover:w-full transition-all duration-300" />
-            </button>
+            </a>
           ))}
-          <button onClick={() => scrollTo('#menu')}
+          <a href="#menu" onClick={closeMenu}
             className="px-5 py-2 bg-gradient-to-r from-[#4F9C8F] to-[#2d7a6e] text-white text-sm rounded-full font-medium hover:shadow-lg hover:shadow-[#4F9C8F]/30 transition-all duration-300">
             Order Now
-          </button>
+          </a>
         </nav>
 
         {/* Mobile hamburger */}
@@ -94,15 +86,15 @@ export default function Header() {
       >
         <div className="px-4 py-4 flex flex-col gap-3">
           {navLinks.map(link => (
-            <button key={link.href} onClick={() => scrollTo(link.href)}
+            <a key={link.href} href={link.href} onClick={closeMenu}
               className="block w-full text-left text-[#C9B8A0] hover:text-[#F5E6D3] py-3 text-sm tracking-wide border-b border-[#3D2820]/30 transition-colors">
               {link.label}
-            </button>
+            </a>
           ))}
-          <button onClick={() => scrollTo('#menu')}
-            className="mt-2 px-5 py-3 bg-gradient-to-r from-[#4F9C8F] to-[#2d7a6e] text-white text-sm rounded-full font-medium">
+          <a href="#menu" onClick={closeMenu}
+            className="mt-2 inline-block text-center px-5 py-3 bg-gradient-to-r from-[#4F9C8F] to-[#2d7a6e] text-white text-sm rounded-full font-medium">
             Order Now
-          </button>
+          </a>
         </div>
       </motion.div>
     </motion.header>
