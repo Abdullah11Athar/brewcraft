@@ -1,6 +1,7 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const scrollTo = (href: string) => {
   if (href === '#top') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
@@ -9,6 +10,8 @@ const scrollTo = (href: string) => {
 };
 
 export default function Footer() {
+  const [activeModal, setActiveModal] = useState<'privacy' | 'terms' | null>(null);
+
   return (
     <footer id="contact" className="relative bg-[#050201] border-t border-[#2D1810]/60 pt-16 pb-8 px-4 md:px-8 overflow-hidden">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[200px] rounded-full blur-[100px] opacity-10 pointer-events-none"
@@ -82,11 +85,120 @@ export default function Footer() {
           <p>© 2024 BrewCraft. All rights reserved.</p>
           <p>Crafted with ☕ & 🍵</p>
           <div className="flex gap-4">
-            <button className="hover:text-[#C9B8A0] transition-colors">Privacy</button>
-            <button className="hover:text-[#C9B8A0] transition-colors">Terms</button>
+            <button onClick={() => setActiveModal('privacy')} className="hover:text-[#C9B8A0] transition-colors">Privacy Policy</button>
+            <button onClick={() => setActiveModal('terms')} className="hover:text-[#C9B8A0] transition-colors">Terms & Conditions</button>
           </div>
         </div>
       </div>
+
+      {/* Modal system */}
+      <AnimatePresence>
+        {activeModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+            {/* Backdrop click closer */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setActiveModal(null)}
+              className="absolute inset-0 cursor-pointer"
+            />
+
+            {/* Modal Box */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-2xl max-h-[80vh] overflow-y-auto bg-[#130A06] border border-[#5A4034]/70 rounded-2xl p-6 sm:p-8 text-[#C9B8A0] shadow-2xl z-10 custom-scrollbar"
+            >
+              {/* Decorative Accent Glow */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#4F9C8F] via-[#D4A574] to-[#4F9C8F]" />
+
+              {/* Close Button */}
+              <button 
+                onClick={() => setActiveModal(null)}
+                className="absolute top-4 right-4 text-[#C9B8A0] hover:text-white hover:bg-white/10 rounded-full w-8 h-8 flex items-center justify-center transition-colors text-lg"
+              >
+                ✕
+              </button>
+
+              {activeModal === 'privacy' ? (
+                <div>
+                  <h3 className="text-[#F5E6D3] text-2xl font-bold mb-6 tracking-wide" style={{ fontFamily: 'Playfair Display, serif' }}>
+                    Privacy <span className="text-[#4F9C8F]">Policy</span>
+                  </h3>
+                  <div className="space-y-4 text-sm leading-relaxed text-left text-[#C9B8A0]/90">
+                    <p>
+                      Welcome to BrewCraft. We are committed to protecting your personal information and your right to privacy.
+                    </p>
+                    <div>
+                      <h4 className="text-[#D4A574] font-semibold mb-1 uppercase tracking-wider text-xs">1. Information We Collect</h4>
+                      <p>
+                        We do not run direct registration forms on this landing page. However, when you click our WhatsApp button to coordinate orders or get in touch, you voluntarily share your phone number and chat content.
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="text-[#D4A574] font-semibold mb-1 uppercase tracking-wider text-xs">2. Cookies and Analytics</h4>
+                      <p>
+                        We utilize minor functional cookies and Vercel Analytics to understand user behaviors, helping us improve site speed, layout responsiveness, and overall coffee exploration experiences.
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="text-[#D4A574] font-semibold mb-1 uppercase tracking-wider text-xs">3. Sharing Your Information</h4>
+                      <p>
+                        BrewCraft will never sell, rent, or lease your private data or contact number to third-party companies. All user communications are kept strictly confidential.
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="text-[#D4A574] font-semibold mb-1 uppercase tracking-wider text-xs">4. Contact Us</h4>
+                      <p>
+                        If you have any questions about this Privacy Policy, you can reach out to us at <span className="text-[#4F9C8F]">hello@brewcraft.com</span> or via our official WhatsApp channel.
+                      </p>
+                    </div>
+                    <p className="text-xs text-[#5A4034] pt-4">Last Updated: May 2026</p>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <h3 className="text-[#F5E6D3] text-2xl font-bold mb-6 tracking-wide" style={{ fontFamily: 'Playfair Display, serif' }}>
+                    Terms & <span className="text-[#4F9C8F]">Conditions</span>
+                  </h3>
+                  <div className="space-y-4 text-sm leading-relaxed text-left text-[#C9B8A0]/90">
+                    <p>
+                      By accessing and exploring the BrewCraft website, you acknowledge that you have read and agreed to comply with the following Terms & Conditions.
+                    </p>
+                    <div>
+                      <h4 className="text-[#D4A574] font-semibold mb-1 uppercase tracking-wider text-xs">1. Website Use</h4>
+                      <p>
+                        This website provides interactive menus, visual coffee animations, and order redirections. You agree not to engage in malicious operations, scraping, or heavy spamming that disrupts the site's hosting performance.
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="text-[#D4A574] font-semibold mb-1 uppercase tracking-wider text-xs">2. Intellectual Property</h4>
+                      <p>
+                        All original coffee blend names, design tokens, logos, graphics, and canvas fluid animations showcased on BrewCraft are owned by us and protected under international copyright regulations.
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="text-[#D4A574] font-semibold mb-1 uppercase tracking-wider text-xs">3. Product & Orders</h4>
+                      <p>
+                        Our menu catalog displays item details and ingredients. Pricing and product availability can change at any time without prior notice. Final order placement and payments are settled securely during the WhatsApp checkout phase.
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="text-[#D4A574] font-semibold mb-1 uppercase tracking-wider text-xs">4. Limitation of Liability</h4>
+                      <p>
+                        BrewCraft strives to provide accurate product information, but does not warrant that descriptions, images, or pricing are entirely error-free. We shall not be liable for any indirect disruptions resulting from using this website.
+                      </p>
+                    </div>
+                    <p className="text-xs text-[#5A4034] pt-4">Last Updated: May 2026</p>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </footer>
   );
 }
