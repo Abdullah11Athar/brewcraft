@@ -63,7 +63,7 @@ export const features: FeatureHighlight[] = [
   {
     title: 'Atmosphere of Inspiration',
     description:
-      'Lorem ipsum is dolor sit amet, consectetur adipiscing elit. Suspendisse dapibus tempor incididunt ut.',
+      'A cozy, meticulously designed space where premium aromas and ambient light combine to foster creativity and comfort.',
     position: 'left',
   },
   {

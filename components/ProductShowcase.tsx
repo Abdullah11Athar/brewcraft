@@ -223,7 +223,11 @@ function Card3D({ product, index }: { product: typeof coffeeProducts[0]; index: 
               <motion.button
                 whileHover={{ scale: 1.15, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={() => alert(`${product.name} added to cart!`)}
+                onClick={() => {
+                  const phone = '923171036774';
+                  const text = encodeURIComponent(`Hi BrewCraft! I would like to order a ${product.name} (${product.price}).`);
+                  window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+                }}
                 className="w-11 h-11 rounded-full bg-gradient-to-br from-[#4F9C8F] to-[#2d6b62] flex items-center justify-center shadow-lg">
                 <span className="text-white text-xl font-bold leading-none">+</span>
               </motion.button>
