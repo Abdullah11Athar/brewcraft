@@ -4,6 +4,10 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'BrewCraft | Artisan Coffee Experience',
   description: 'Premium coffee experiences crafted to perfection. Every sip defies gravity.',
+  metadataBase: new URL('https://brewcraft.shop'),
+  alternates: {
+    canonical: '/',
+  },
 };
 
 export const viewport: Viewport = {
