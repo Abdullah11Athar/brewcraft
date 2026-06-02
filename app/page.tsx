@@ -19,11 +19,8 @@ export default function Home() {
     <main className="bg-[#1A0F0A] min-h-screen">
       <Header />
       <HeroCanvasAnimation />
-      {/* overflow-x-hidden only below the sticky animation so sticky doesn't break */}
       <div className="overflow-x-hidden">
-        <div id="menu">
-          <ProductShowcase />
-        </div>
+        <ProductShowcase />
         <div id="why">
           <FeatureSection />
         </div>

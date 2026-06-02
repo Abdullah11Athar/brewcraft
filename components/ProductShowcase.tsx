@@ -531,7 +531,7 @@ export default function ProductShowcase() {
       </motion.div>
 
       {/* Heading */}
-      <div className="max-w-7xl mx-auto relative z-10">
+      <div id="menu" className="max-w-7xl mx-auto relative z-10">
         <div className="text-center mb-12 md:mb-16">
           <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
             className="text-[#4F9C8F] text-xs tracking-[0.4em] uppercase mb-3">Our Collection</motion.p>
