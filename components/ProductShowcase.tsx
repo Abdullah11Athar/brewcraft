@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { coffeeProducts } from '@/data/products';
 
 const FRAMES_PATH = '/frames';
@@ -126,7 +126,7 @@ function SplashBanner() {
   );
 }
 
-function Card3D({ product, index }: { product: typeof coffeeProducts[0]; index: number }) {
+function Card3D({ product, index, onBook }: { product: typeof coffeeProducts[0]; index: number; onBook: (product: typeof coffeeProducts[0]) => void }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [rotateX, setRotateX] = useState(0);
   const [rotateY, setRotateY] = useState(0);
@@ -164,6 +164,11 @@ function Card3D({ product, index }: { product: typeof coffeeProducts[0]; index: 
       setIsHovered(prev => !prev);
     }
   }, [isMobile]);
+
+  const handleBookClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Stop parent click events
+    onBook(product);
+  };
 
   return (
     <motion.div
@@ -223,11 +228,7 @@ function Card3D({ product, index }: { product: typeof coffeeProducts[0]; index: 
               <motion.button
                 whileHover={{ scale: 1.15, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={() => {
-                  const phone = '923171036774';
-                  const text = encodeURIComponent(`Hi BrewCraft! I would like to order a ${product.name} (${product.price}).`);
-                  window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
-                }}
+                onClick={handleBookClick}
                 className="w-11 h-11 rounded-full bg-gradient-to-br from-[#4F9C8F] to-[#2d6b62] flex items-center justify-center shadow-lg">
                 <span className="text-white text-xl font-bold leading-none">+</span>
               </motion.button>
@@ -239,11 +240,263 @@ function Card3D({ product, index }: { product: typeof coffeeProducts[0]; index: 
   );
 }
 
+const SEATING_AREAS = {
+  rooftop: {
+    name: 'Rooftop Seating',
+    price: 15.00,
+    priceStr: '$15.00',
+    image: '/coffee/rooftop_seating.png',
+  },
+  inside: {
+    name: 'Inside Lounge',
+    price: 10.00,
+    priceStr: '$10.00',
+    image: '/coffee/inside_lounge.png',
+  },
+  outside: {
+    name: 'Outside Garden',
+    price: 12.00,
+    priceStr: '$12.00',
+    image: '/coffee/outside_garden.png',
+  }
+};
+
+function BookingModal({ product, onClose }: { product: typeof coffeeProducts[0]; onClose: () => void }) {
+  const [seatingKey, setSeatingKey] = useState<'rooftop' | 'inside' | 'outside'>('rooftop');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('7:30 PM');
+  const [guests, setGuests] = useState('2 Guests');
+  const [tableNumber, setTableNumber] = useState('Table 1');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    setDate(tomorrow.toISOString().split('T')[0]);
+  }, []);
+
+  const activeSeating = SEATING_AREAS[seatingKey];
+
+  // Parse coffee price
+  const coffeeNumeric = parseFloat(product.price.replace(/[^0-9.]/g, '')) || 0;
+  const totalAmount = coffeeNumeric + activeSeating.price;
+
+  const handleBook = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!date) {
+      alert('Please select a reservation date.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: product.id,
+          name: product.name,
+          price: `$${totalAmount.toFixed(2)}`, // total combined price passed as price
+          image: activeSeating.image, // show restaurant image in Stripe Checkout
+          booking: {
+            seatingArea: activeSeating.name,
+            date,
+            time,
+            guests,
+            tableNumber,
+          }
+        }),
+      });
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url; // Secure redirect to Stripe Checkout
+      } else {
+        alert(data.error || 'Failed to initialize booking payment.');
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Connection error. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+      {/* Backdrop Closer */}
+      <div className="absolute inset-0 cursor-pointer" onClick={onClose} />
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="relative bg-[#130A06] border border-[#5A4034]/70 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto text-[#C9B8A0] shadow-2xl z-10 custom-scrollbar"
+      >
+        {/* Glow Line */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#4F9C8F] via-[#D4A574] to-[#4F9C8F]" />
+
+        {/* Modal Image Header (Shows Selected Seating Space Photo!) */}
+        <div className="relative w-full h-48 bg-[#0a0300]">
+          <img src={activeSeating.image} alt={activeSeating.name} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#130A06] via-transparent to-transparent" />
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute top-4 right-4 bg-black/55 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/80 transition-colors text-sm"
+          >
+            ✕
+          </button>
+          <div className="absolute bottom-4 left-6">
+            <span className="text-2xs px-2 py-0.5 rounded-full border border-[#4F9C8F] text-[#4F9C8F] font-semibold uppercase tracking-wider bg-[#0a0300]/40">
+              Booking with {product.name}
+            </span>
+            <h3 className="text-2xl font-bold text-white mt-1.5" style={{ fontFamily: 'Playfair Display, serif' }}>
+              {activeSeating.name}
+            </h3>
+          </div>
+        </div>
+
+        {/* Modal Form */}
+        <form onSubmit={handleBook} className="p-6 space-y-4">
+          {/* Seating Area Radio Selector */}
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[#D4A574] mb-2">
+              Choose Seating Area
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {(Object.keys(SEATING_AREAS) as Array<keyof typeof SEATING_AREAS>).map((key) => {
+                const area = SEATING_AREAS[key];
+                const active = seatingKey === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setSeatingKey(key)}
+                    className={`px-4 py-3 sm:px-2 sm:py-3 rounded-xl border transition-all duration-200 flex flex-row sm:flex-col items-center justify-between sm:justify-center ${
+                      active
+                        ? 'bg-[#4F9C8F]/15 border-[#4F9C8F] text-[#F5E6D3] font-semibold'
+                        : 'bg-[#1A0F0A] border-[#3D2820] text-[#C9B8A0]/75 hover:border-[#5A4034]'
+                    }`}
+                  >
+                    <div className="text-xs uppercase tracking-wider font-semibold">{area.name.split(' ')[0]}</div>
+                    <div className={`text-xs sm:mt-1 font-medium ${active ? 'text-[#4F9C8F]' : 'text-[#C9B8A0]'}`}>
+                      +{area.priceStr}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Date Picker */}
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[#D4A574] mb-1.5">
+              Select Date
+            </label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full bg-[#1A0F0A] border border-[#3D2820] rounded-xl px-4 py-2.5 text-[#F5E6D3] text-sm focus:outline-none focus:border-[#4F9C8F] transition-colors"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            {/* Time Slot Selector */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[#D4A574] mb-1.5">
+                Time Slot
+              </label>
+              <select
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="w-full bg-[#1A0F0A] border border-[#3D2820] rounded-xl px-3 py-2.5 text-[#F5E6D3] text-sm focus:outline-none focus:border-[#4F9C8F] transition-colors cursor-pointer"
+              >
+                {['6:00 PM', '7:00 PM', '8:00 PM', '9:00 PM', '10:00 PM'].map((t) => (
+                  <option key={t} value={t} className="bg-[#1A0F0A]">{t}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Table Number Selector */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[#D4A574] mb-1.5">
+                Table Number
+              </label>
+              <select
+                value={tableNumber}
+                onChange={(e) => setTableNumber(e.target.value)}
+                className="w-full bg-[#1A0F0A] border border-[#3D2820] rounded-xl px-3 py-2.5 text-[#F5E6D3] text-sm focus:outline-none focus:border-[#4F9C8F] transition-colors cursor-pointer"
+              >
+                {[...Array(10)].map((_, i) => (
+                  <option key={i} value={`Table ${i + 1}`} className="bg-[#1A0F0A]">Table {i + 1}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Guest Count */}
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[#D4A574] mb-1.5">
+              Number of Guests
+            </label>
+            <select
+              value={guests}
+              onChange={(e) => setGuests(e.target.value)}
+              className="w-full bg-[#1A0F0A] border border-[#3D2820] rounded-xl px-4 py-2.5 text-[#F5E6D3] text-sm focus:outline-none focus:border-[#4F9C8F] transition-colors cursor-pointer"
+            >
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((g) => (
+                <option key={g} value={`${g} ${g === 1 ? 'Guest' : 'Guests'}`} className="bg-[#1A0F0A]">
+                  {g} {g === 1 ? 'Guest' : 'Guests'}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Cost Breakdown Summary */}
+          <div className="bg-[#0A0300] border border-[#3D2820]/60 rounded-xl p-4 text-xs space-y-2">
+            <div className="flex justify-between">
+              <span className="text-[#C9B8A0]/60">{product.name}:</span>
+              <span className="text-[#F5E6D3] font-medium">{product.price}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[#C9B8A0]/60">{activeSeating.name} reservation:</span>
+              <span className="text-[#F5E6D3] font-medium">+{activeSeating.priceStr}</span>
+            </div>
+            <div className="h-[1px] bg-[#3D2820]/60 my-1" />
+            <div className="flex justify-between text-sm font-semibold">
+              <span className="text-[#D4A574]">Total Cost:</span>
+              <span className="text-[#4F9C8F]">${totalAmount.toFixed(2)}</span>
+            </div>
+          </div>
+
+          {/* Action Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full mt-2 py-3 bg-gradient-to-r from-[#4F9C8F] to-[#2d6b62] text-white text-sm font-semibold rounded-xl hover:shadow-lg hover:shadow-[#4F9C8F]/20 transition-all duration-300 flex items-center justify-center gap-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+          >
+            {loading ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Processing Reservation...
+              </>
+            ) : (
+              `Reserve & Pay $${totalAmount.toFixed(2)}`
+            )}
+          </button>
+        </form>
+      </motion.div>
+    </div>
+  );
+}
+
 export default function ProductShowcase() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const bannerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress: bp } = useScroll({ target: bannerRef, offset: ['start end', 'end start'] });
   const bannerY = useTransform(bp, [0, 1], [20, -20]);
+  const [activeBooking, setActiveBooking] = useState<typeof coffeeProducts[0] | null>(null);
 
   return (
     <section ref={sectionRef} className="relative py-20 md:py-32 px-4 md:px-8 overflow-hidden">
@@ -295,10 +548,16 @@ export default function ProductShowcase() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-8">
           {coffeeProducts.map((product, index) => (
-            <Card3D key={product.id} product={product} index={index} />
+            <Card3D key={product.id} product={product} index={index} onBook={setActiveBooking} />
           ))}
         </div>
       </div>
+
+      <AnimatePresence>
+        {activeBooking && (
+          <BookingModal product={activeBooking} onClose={() => setActiveBooking(null)} />
+        )}
+      </AnimatePresence>
     </section>
   );
 }

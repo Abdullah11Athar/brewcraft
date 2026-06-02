@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 
 const scrollTo = (href: string) => {
   if (href === '#top') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
@@ -84,9 +85,10 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#5A4034]">
           <p>© 2024 BrewCraft. All rights reserved.</p>
           <p>Crafted with ☕ & 🍵</p>
-          <div className="flex gap-4">
-            <button onClick={() => setActiveModal('privacy')} className="hover:text-[#C9B8A0] transition-colors">Privacy Policy</button>
-            <button onClick={() => setActiveModal('terms')} className="hover:text-[#C9B8A0] transition-colors">Terms & Conditions</button>
+          <div className="flex gap-6">
+            <Link href="/privacy-policy" className="hover:text-[#C9B8A0] transition-colors">Privacy Policy</Link>
+            <Link href="/terms-of-service" className="hover:text-[#C9B8A0] transition-colors">Terms of Service</Link>
+            <Link href="/refund-policy" className="hover:text-[#C9B8A0] transition-colors">Refund Policy</Link>
           </div>
         </div>
       </div>
