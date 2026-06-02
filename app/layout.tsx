@@ -17,6 +17,7 @@ export const viewport: Viewport = {
 };
 
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import SEOJSONLD from '@/components/SEOJSONLD';
 
 export default function RootLayout({
   children,
@@ -26,6 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <SEOJSONLD />
         {children}
         <SpeedInsights />
       </body>
