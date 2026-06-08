@@ -209,6 +209,9 @@ export default function HeroCanvasAnimation() {
         {/* Scene 1 */}
         <motion.div style={{ opacity: s1Opacity }}
           className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pointer-events-none">
+          <span className="text-[#4F9C8F] text-[10px] md:text-xs tracking-[0.4em] uppercase mb-4 bg-[#0A0300]/80 px-4 py-1.5 rounded-full border border-[#3D2820]/60 pointer-events-auto">
+            Next.js & Figma Storefront Template
+          </span>
           <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-amber-50 leading-none tracking-tight mb-4"
             style={{ fontFamily: 'Playfair Display, serif' }}>
             Experience<br />Coffee

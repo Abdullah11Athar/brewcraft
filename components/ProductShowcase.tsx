@@ -544,6 +544,9 @@ export default function ProductShowcase() {
           <motion.div initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }}
             transition={{ delay: 0.3, duration: 0.8 }}
             className="w-20 h-[1px] bg-gradient-to-r from-transparent via-[#4F9C8F] to-transparent mx-auto mt-5" />
+          <p className="text-xs text-[#C9B8A0]/60 mt-4 max-w-md mx-auto leading-relaxed">
+            Select a drink to experience the interactive table booking module. This storefront serves as a live, functional preview of our premium design template.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-8">

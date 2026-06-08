@@ -82,10 +82,15 @@ export default function Footer() {
         <div className="h-[1px] bg-gradient-to-r from-transparent via-[#3D2820] to-transparent mb-6" />
 
         {/* Bottom bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#5A4034]">
-          <p>© 2024 BrewCraft. All rights reserved.</p>
-          <p>Crafted with ☕ & 🍵</p>
-          <div className="flex gap-6">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#5A4034] text-center sm:text-left">
+          <div>
+            <p>© 2026 BrewCraft. All rights reserved.</p>
+            <p className="text-[10px] text-[#5A4034]/70 mt-1 max-w-sm leading-normal">
+              BrewCraft is a demo storefront showcasing our premium Cafe Next.js Website & Figma Design Template. We sell digital design source files and developer templates.
+            </p>
+          </div>
+          <p className="shrink-0">Crafted with ☕ & 🍵</p>
+          <div className="flex gap-4 md:gap-6 shrink-0 flex-wrap justify-center">
             <Link href="/privacy-policy" className="hover:text-[#C9B8A0] transition-colors">Privacy Policy</Link>
             <Link href="/terms-of-service" className="hover:text-[#C9B8A0] transition-colors">Terms of Service</Link>
             <Link href="/refund-policy" className="hover:text-[#C9B8A0] transition-colors">Refund Policy</Link>
