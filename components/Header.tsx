@@ -47,11 +47,6 @@ export default function Header() {
       animate={{ y: 0 }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
     >
-      {/* Demo Notice Banner */}
-      <div className="bg-gradient-to-r from-[#20130E] via-[#4F9C8F]/90 to-[#20130E] text-[#F5E6D3] text-center py-2 px-4 text-[10px] md:text-xs font-semibold tracking-wide flex justify-center items-center gap-2 relative z-30 border-b border-[#3D2820]/40 shadow-lg">
-        <span>✨ <strong>Storefront Template Demo:</strong> Premium Next.js website & Figma design kit for cafes.</span>
-        <a href="/pricing" className="underline hover:text-white transition-colors font-bold ml-1">View Pricing & Purchase →</a>
-      </div>
 
       <motion.div
         className="absolute inset-0 border-b border-[#3D2820]/60 backdrop-blur-xl pointer-events-none z-10"

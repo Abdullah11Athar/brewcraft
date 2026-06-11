@@ -279,7 +279,8 @@ function BookingModal({ product, onClose }: { product: typeof coffeeProducts[0];
 
   // Parse coffee price
   const coffeeNumeric = parseFloat(product.price.replace(/[^0-9.]/g, '')) || 0;
-  const totalAmount = coffeeNumeric + activeSeating.price;
+  const guestCount = parseInt(guests.split(' ')[0]) || 1;
+  const totalAmount = (coffeeNumeric * guestCount) + activeSeating.price;
 
   const handleBook = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -456,8 +457,8 @@ function BookingModal({ product, onClose }: { product: typeof coffeeProducts[0];
           {/* Cost Breakdown Summary */}
           <div className="bg-[#0A0300] border border-[#3D2820]/60 rounded-xl p-4 text-xs space-y-2">
             <div className="flex justify-between">
-              <span className="text-[#C9B8A0]/60">{product.name}:</span>
-              <span className="text-[#F5E6D3] font-medium">{product.price}</span>
+              <span className="text-[#C9B8A0]/60">{product.name} ({guestCount}x):</span>
+              <span className="text-[#F5E6D3] font-medium">${(coffeeNumeric * guestCount).toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-[#C9B8A0]/60">{activeSeating.name} reservation:</span>

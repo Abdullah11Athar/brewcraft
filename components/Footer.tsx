@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
 
 const scrollTo = (href: string) => {
   if (href === '#top') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
@@ -11,7 +10,7 @@ const scrollTo = (href: string) => {
 };
 
 export default function Footer() {
-  const [activeModal, setActiveModal] = useState<'privacy' | 'terms' | null>(null);
+  const [activeModal, setActiveModal] = useState<'privacy' | 'terms' | 'refund' | null>(null);
 
   return (
     <footer id="contact" className="relative bg-[#050201] border-t border-[#2D1810]/60 pt-16 pb-8 px-4 md:px-8 overflow-hidden">
@@ -86,14 +85,14 @@ export default function Footer() {
           <div>
             <p>© 2026 BrewCraft. All rights reserved.</p>
             <p className="text-[10px] text-[#5A4034]/70 mt-1 max-w-sm leading-normal">
-              BrewCraft is a demo storefront showcasing our premium Cafe Next.js Website & Figma Design Template. We sell digital design source files and developer templates.
+              BrewCraft is a premium artisan cafe experience delivering premium, sustainably sourced coffee beans and handcrafted tea blends.
             </p>
           </div>
           <p className="shrink-0">Crafted with ☕ & 🍵</p>
           <div className="flex gap-4 md:gap-6 shrink-0 flex-wrap justify-center">
-            <Link href="/privacy-policy" className="hover:text-[#C9B8A0] transition-colors">Privacy Policy</Link>
-            <Link href="/terms-of-service" className="hover:text-[#C9B8A0] transition-colors">Terms of Service</Link>
-            <Link href="/refund-policy" className="hover:text-[#C9B8A0] transition-colors">Refund Policy</Link>
+            <button onClick={() => setActiveModal('privacy')} className="hover:text-[#C9B8A0] transition-colors focus:outline-none">Privacy Policy</button>
+            <button onClick={() => setActiveModal('terms')} className="hover:text-[#C9B8A0] transition-colors focus:outline-none">Terms of Service</button>
+            <button onClick={() => setActiveModal('refund')} className="hover:text-[#C9B8A0] transition-colors focus:outline-none">Refund Policy</button>
           </div>
         </div>
       </div>
@@ -129,7 +128,7 @@ export default function Footer() {
                 ✕
               </button>
 
-              {activeModal === 'privacy' ? (
+              {activeModal === 'privacy' && (
                 <div>
                   <h3 className="text-[#F5E6D3] text-2xl font-bold mb-6 tracking-wide" style={{ fontFamily: 'Playfair Display, serif' }}>
                     Privacy <span className="text-[#4F9C8F]">Policy</span>
@@ -165,7 +164,9 @@ export default function Footer() {
                     <p className="text-xs text-[#5A4034] pt-4">Last Updated: May 2026</p>
                   </div>
                 </div>
-              ) : (
+              )}
+
+              {activeModal === 'terms' && (
                 <div>
                   <h3 className="text-[#F5E6D3] text-2xl font-bold mb-6 tracking-wide" style={{ fontFamily: 'Playfair Display, serif' }}>
                     Terms & <span className="text-[#4F9C8F]">Conditions</span>
@@ -199,6 +200,45 @@ export default function Footer() {
                       </p>
                     </div>
                     <p className="text-xs text-[#5A4034] pt-4">Last Updated: May 2026</p>
+                  </div>
+                </div>
+              )}
+
+              {activeModal === 'refund' && (
+                <div>
+                  <h3 className="text-[#F5E6D3] text-2xl font-bold mb-6 tracking-wide" style={{ fontFamily: 'Playfair Display, serif' }}>
+                    Refund <span className="text-[#4F9C8F]">Policy</span>
+                  </h3>
+                  <div className="space-y-4 text-sm leading-relaxed text-left text-[#C9B8A0]/90">
+                    <p>
+                      At BrewCraft, we take absolute pride in our artisan coffee beans and custom tea blends. We want you to love your brew! If you are not entirely satisfied with your purchase, we are here to help.
+                    </p>
+                    <div>
+                      <h4 className="text-[#D4A574] font-semibold mb-1 uppercase tracking-wider text-xs">1. Fresh Coffee and Food Items</h4>
+                      <p>
+                        Because coffee beans and tea leaves are perishable food products, we cannot accept returns on opened or consumed items.
+                        However, if there is a mistake in your order (e.g., wrong roast type, wrong grind level, or incorrect item delivered) or if your package was damaged in transit, please contact us within 7 days of receiving your package. We will immediately ship out a replacement package or process a full refund.
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="text-[#D4A574] font-semibold mb-1 uppercase tracking-wider text-xs">2. Merchandise and Equipment</h4>
+                      <p>
+                        For non-perishable goods (like mugs, drippers, scales, or coffee grinders), you may return items within 14 days of delivery. Items must be completely unused, in their original packaging, and in the same condition that you received them.
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="text-[#D4A574] font-semibold mb-1 uppercase tracking-wider text-xs">3. Refund Processing</h4>
+                      <p>
+                        If approved, your refund will be processed immediately. A credit will automatically be applied to your original credit card or method of payment via Stripe. Payout processing timelines depend on your bank, but typically take 5 to 10 business days.
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="text-[#D4A574] font-semibold mb-1 uppercase tracking-wider text-xs">4. Contact for Returns and Refunds</h4>
+                      <p>
+                        To initiate a return or report a damaged coffee order, please contact our support desk at <span className="text-[#4F9C8F]">hello@brewcraft.com</span> or coordinates via our home screen WhatsApp contact button.
+                      </p>
+                    </div>
+                    <p className="text-xs text-[#5A4034] pt-4">Last Updated: June 2026</p>
                   </div>
                 </div>
               )}
