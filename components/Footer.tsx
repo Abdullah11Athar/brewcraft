@@ -4,9 +4,16 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const scrollTo = (href: string) => {
-  if (href === '#top') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+  if (href === '#top') { 
+    window.scrollTo({ top: 0, behavior: 'smooth' }); 
+    window.history.pushState(null, '', '/');
+    return; 
+  }
   const el = document.querySelector(href);
-  if (el) el.scrollIntoView({ behavior: 'smooth' });
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth' });
+    window.history.pushState(null, '', href);
+  }
 };
 
 export default function Footer() {

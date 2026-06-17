@@ -26,6 +26,7 @@ export default function Header() {
     setTimeout(() => {
       if (href === '#top') {
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.history.pushState(null, '', '/');
         return;
       }
       const el = document.querySelector(href);
@@ -36,6 +37,7 @@ export default function Header() {
           top: offsetPosition,
           behavior: 'smooth'
         });
+        window.history.pushState(null, '', href);
       }
     }, 100);
   };

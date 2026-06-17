@@ -11,7 +11,24 @@ import WhatsAppButton from '@/components/WhatsApp';
 
 export default function Home() {
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const hash = window.location.hash;
+    if (hash) {
+      // Delay to allow canvas, fonts, and grid layout height to initialize
+      setTimeout(() => {
+        const el = document.querySelector(hash);
+        if (el) {
+          const offset = window.innerWidth >= 768 ? 80 : 64;
+          const elementPosition = el.getBoundingClientRect().top + window.scrollY;
+          const offsetPosition = elementPosition - offset;
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 700);
+    } else {
+      window.scrollTo(0, 0);
+    }
   }, []);
 
   return (
