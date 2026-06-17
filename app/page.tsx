@@ -33,14 +33,20 @@ export default function Home() {
 
   // Intersection Observer to update URL bar dynamically on manual scroll
   useEffect(() => {
-    const sections = ['top', 'menu', 'why', 'contact'];
+    const sections = ['top', 'menu', 'about', 'contact'];
     const observerOptions = {
       root: null,
-      rootMargin: '-50% 0px -50% 0px',
+      rootMargin: '-30% 0px -30% 0px',
       threshold: 0
     };
 
     const observer = new IntersectionObserver((entries) => {
+      // Prevent updating hash if page is still in loading state (hero not fully rendered yet)
+      const menuEl = document.getElementById('menu');
+      if (menuEl && menuEl.getBoundingClientRect().top < 500 && window.scrollY < 100) {
+        return;
+      }
+
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           const id = entry.target.id;
@@ -57,19 +63,34 @@ export default function Home() {
       if (el) observer.observe(el);
     });
 
-    return () => observer.disconnect();
+    // Fallback: Clear hash when scrolled anywhere inside the 600vh hero section
+    const handleScroll = () => {
+      const heroHeight = window.innerHeight * 5.2; // 600vh with a safe buffer
+      if (window.scrollY < heroHeight) {
+        if (window.location.hash !== '') {
+          window.history.pushState(null, '', '/');
+        }
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   return (
     // overflow-x-hidden is NOT on main — it breaks position:sticky
-    <main className="bg-[#1A0F0A] min-h-screen" id="top">
+    <main className="bg-[#1A0F0A] min-h-screen relative">
+      <div id="top" className="absolute top-0 left-0 w-full h-10 pointer-events-none" />
       <Header />
       <HeroCanvasAnimation />
       <div className="overflow-x-hidden">
         <div id="menu">
           <ProductShowcase />
         </div>
-        <div id="why">
+        <div id="about">
           <FeatureSection />
         </div>
         <div id="contact">

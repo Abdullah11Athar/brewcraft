@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://brewcraft.shop';
-  const routes = ['', '/privacy-policy', '/terms-of-service', '/refund-policy'];
+  const routes = ['', '/privacy-policy', '/terms-of-service', '/refund-policy', '/pricing'];
   
   return routes.map((route) => ({
     url: `${baseUrl}${route}`,

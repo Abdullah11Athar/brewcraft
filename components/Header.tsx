@@ -6,7 +6,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 const navLinks = [
   { label: 'Home', href: '#top' },
   { label: 'Menu', href: '#menu' },
-  { label: 'About', href: '#why' },
+  { label: 'About', href: '#about' },
   { label: 'Contact', href: '#contact' },
 ];
 
@@ -25,6 +25,10 @@ export default function Header() {
     setMenuOpen(false);
     setTimeout(() => {
       if (href === '#top') {
+        if (window.location.pathname !== '/') {
+          window.location.href = '/';
+          return;
+        }
         window.scrollTo({ top: 0, behavior: 'smooth' });
         window.history.pushState(null, '', '/');
         return;
@@ -38,6 +42,8 @@ export default function Header() {
           behavior: 'smooth'
         });
         window.history.pushState(null, '', href);
+      } else {
+        window.location.href = '/' + href;
       }
     }, 100);
   };

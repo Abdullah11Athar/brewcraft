@@ -5,6 +5,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const scrollTo = (href: string) => {
   if (href === '#top') { 
+    if (window.location.pathname !== '/') {
+      window.location.href = '/';
+      return;
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' }); 
     window.history.pushState(null, '', '/');
     return; 
@@ -13,6 +17,8 @@ const scrollTo = (href: string) => {
   if (el) {
     el.scrollIntoView({ behavior: 'smooth' });
     window.history.pushState(null, '', href);
+  } else {
+    window.location.href = '/' + href;
   }
 };
 
@@ -59,7 +65,7 @@ export default function Footer() {
               {[
                 { label: 'Home', href: '#top' },
                 { label: 'Our Menu', href: '#menu' },
-                { label: 'About Us', href: '#why' },
+                { label: 'About Us', href: '#about' },
                 { label: 'Contact Us', href: '#contact' },
               ].map(l => (
                 <button key={l.href} onClick={() => scrollTo(l.href)}
