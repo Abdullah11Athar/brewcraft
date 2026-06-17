@@ -2,12 +2,12 @@ import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://brewcraft.shop';
-  const routes = [''];
+  const routes = ['', '/privacy-policy', '/terms-of-service', '/refund-policy'];
   
   return routes.map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
-    changeFrequency: 'daily',
-    priority: 1.0,
+    changeFrequency: route === '' ? 'daily' : 'monthly',
+    priority: route === '' ? 1.0 : 0.5,
   }));
 }
