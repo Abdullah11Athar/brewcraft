@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { coffeeProducts } from '@/data/products';
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
@@ -7,6 +8,12 @@ let stripe: Stripe | null = null;
 if (stripeSecretKey) {
   stripe = new Stripe(stripeSecretKey);
 }
+
+const seatingPrices: Record<string, number> = {
+  'Rooftop Seating': 15.00,
+  'Inside Lounge': 10.00,
+  'Outside Garden': 12.00
+};
 
 export async function POST(request: Request) {
   try {
@@ -17,25 +24,55 @@ export async function POST(request: Request) {
       );
     }
 
-    const { id, name, description, price, image, booking } = await request.json();
-
-    if (!booking) {
-      return NextResponse.json(
-        { error: 'Booking details are missing.' },
-        { status: 400 }
-      );
+    // Protection 1: Payload Size Cap (DoS prevention)
+    const rawBody = await request.text();
+    if (rawBody.length > 5000) {
+      return NextResponse.json({ error: 'Payload too large.' }, { status: 413 });
     }
 
-    // Parse price string (e.g. "$19.00" to 1900 cents)
-    const numericPrice = parseFloat(price.replace(/[^0-9.]/g, ''));
-    if (isNaN(numericPrice) || numericPrice <= 0) {
-      return NextResponse.json(
-        { error: 'Invalid product price format.' },
-        { status: 400 }
-      );
+    let body;
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON request.' }, { status: 400 });
     }
 
-    const amountInCents = Math.round(numericPrice * 100);
+    const { id, name, image, booking } = body;
+
+    // Protection 2: Strict Type & Length validation (NoSQL/Query Injection Prevention)
+    if (
+      typeof id !== 'string' || id.length > 50 ||
+      typeof name !== 'string' || name.length > 100 ||
+      typeof image !== 'string' || image.length > 250 ||
+      !booking || typeof booking !== 'object' ||
+      typeof booking.seatingArea !== 'string' || booking.seatingArea.length > 50 ||
+      typeof booking.date !== 'string' || booking.date.length > 30 ||
+      typeof booking.time !== 'string' || booking.time.length > 30 ||
+      typeof booking.guests !== 'string' || booking.guests.length > 30 ||
+      typeof booking.tableNumber !== 'string' || booking.tableNumber.length > 30
+    ) {
+      return NextResponse.json({ error: 'Invalid input fields or parameter types.' }, { status: 400 });
+    }
+
+    // Protection 3: Secure Server-Side Price Calculation (Bypasses Price Tampering)
+    const product = coffeeProducts.find(p => p.id === id);
+    if (!product) {
+      return NextResponse.json({ error: 'Coffee product not found in catalog.' }, { status: 400 });
+    }
+
+    const coffeeBasePrice = parseFloat(product.price.replace(/[^0-9.]/g, '')) || 0;
+    const guestCount = parseInt(booking.guests.split(' ')[0]) || 1;
+    if (guestCount < 1 || guestCount > 50 || isNaN(guestCount)) {
+      return NextResponse.json({ error: 'Invalid guest capacity.' }, { status: 400 });
+    }
+
+    const seatingPrice = seatingPrices[booking.seatingArea];
+    if (seatingPrice === undefined) {
+      return NextResponse.json({ error: 'Invalid seating area selection.' }, { status: 400 });
+    }
+
+    const verifiedPrice = (coffeeBasePrice * guestCount) + seatingPrice;
+    const amountInCents = Math.round(verifiedPrice * 100);
 
     // Get origin domain for redirect URLs
     const origin = request.headers.get('origin') || 'https://brewcraft.shop';
@@ -52,7 +89,7 @@ export async function POST(request: Request) {
       `&time=${encodeURIComponent(booking.time)}` +
       `&table=${encodeURIComponent(booking.tableNumber)}` +
       `&guests=${encodeURIComponent(booking.guests)}` +
-      `&coffee=${encodeURIComponent(name)}`;
+      `&coffee=${encodeURIComponent(product.name)}`;
 
     // Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
@@ -62,8 +99,8 @@ export async function POST(request: Request) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: `${booking.seatingArea} Reservation + ${name}`,
-              description: `Booking: ${booking.date} at ${booking.time} (${booking.tableNumber}, ${booking.guests}). Includes one complimentary ${name}.`,
+              name: `${booking.seatingArea} Reservation + ${product.name}`,
+              description: `Booking: ${booking.date} at ${booking.time} (${booking.tableNumber}, ${booking.guests}). Includes one complimentary ${product.name}.`,
               images: [imageUrl],
             },
             unit_amount: amountInCents,
@@ -72,7 +109,7 @@ export async function POST(request: Request) {
         },
       ],
       metadata: {
-        coffee_item: name,
+        coffee_item: product.name,
         seating_area: booking.seatingArea,
         reservation_date: booking.date,
         reservation_time: booking.time,
