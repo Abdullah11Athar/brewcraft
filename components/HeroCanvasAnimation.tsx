@@ -18,7 +18,7 @@ export default function HeroCanvasAnimation() {
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
 
-  const springProgress = useSpring(0, { stiffness: 80, damping: 25, restDelta: 0.001 });
+  const springProgress = useSpring(0, { stiffness: 140, damping: 28, restDelta: 0.001 });
 
   const s1Opacity = useTransform(springProgress, [0, 0.08, 0.18, 0.24], [0, 1, 1, 0]);
   const s2Opacity = useTransform(springProgress, [0.28, 0.35, 0.5, 0.56], [0, 1, 1, 0]);
@@ -48,7 +48,7 @@ export default function HeroCanvasAnimation() {
     return true;
   }, []);
 
-  // Draw a single frame — cover mode (always fills full canvas, no black bars)
+  // Draw a single frame — with containment scaling on mobile
   const drawFrame = useCallback((frameIdx: number) => {
     const canvas = canvasRef.current;
     if (!canvas || canvas.width === 0 || canvas.height === 0) return;
@@ -62,26 +62,32 @@ export default function HeroCanvasAnimation() {
     const W = canvas.width;
     const H = canvas.height;
 
-    // COVER mode: always fill the entire canvas, crop if needed
     const imgRatio = img.naturalWidth / img.naturalHeight;
     const viewRatio = W / H;
 
     let drawW, drawH, drawX, drawY;
+    let scale = 1.0;
+    
+    // Scale down image on mobile to fit the cup inside the screen sides
+    if (window.innerWidth < 768) {
+      scale = 0.82; 
+    }
+
     if (imgRatio > viewRatio) {
-      drawH = H;
-      drawW = H * imgRatio;
+      drawH = H * scale;
+      drawW = H * imgRatio * scale;
       drawX = (W - drawW) / 2;
-      drawY = 0;
+      drawY = (H - drawH) / 2;
     } else {
-      drawW = W;
-      drawH = W / imgRatio;
-      drawX = 0;
+      drawW = W * scale;
+      drawH = (W / imgRatio) * scale;
+      drawX = (W - drawW) / 2;
       drawY = (H - drawH) / 2;
     }
 
-    // Shift image to the right on mobile so the cup is perfectly centered
+    // Shift image slightly to right on mobile to perfectly center the glass cup
     if (window.innerWidth < 768) {
-      drawX += W * 0.08; 
+      drawX += W * 0.035; 
     }
 
     ctx.clearRect(0, 0, W, H);
@@ -183,7 +189,7 @@ export default function HeroCanvasAnimation() {
   }
 
   return (
-    <div ref={containerRef} className="relative h-[600vh]">
+    <div ref={containerRef} className="relative h-[380vh] md:h-[550vh]">
       {/*
         KEY FIX: sticky top-16 md:top-20 puts canvas BELOW the fixed header.
         Height = 100vh minus header = full visible area below nav.

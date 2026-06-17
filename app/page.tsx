@@ -63,9 +63,10 @@ export default function Home() {
       if (el) observer.observe(el);
     });
 
-    // Fallback: Clear hash when scrolled anywhere inside the 600vh hero section
+    // Fallback: Clear hash when scrolled anywhere inside the hero animation container
     const handleScroll = () => {
-      const heroHeight = window.innerHeight * 5.2; // 600vh with a safe buffer
+      const isDesktop = window.innerWidth >= 768;
+      const heroHeight = isDesktop ? window.innerHeight * 4.8 : window.innerHeight * 3.2;
       if (window.scrollY < heroHeight) {
         if (window.location.hash !== '') {
           window.history.pushState(null, '', '/');
