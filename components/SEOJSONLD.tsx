@@ -89,10 +89,10 @@ export default function SEOJSONLD() {
       'hasMerchantReturnPolicy': {
         '@type': 'MerchantReturnPolicy',
         'applicableCountry': 'US',
-        'returnPolicyCategory': 'https://schema.org/MerchantReturnFiniteReturnPeriod',
+        'returnPolicyCategory': 'http://schema.org/MerchantReturnFiniteReturnPeriod',
         'merchantReturnDays': 14,
-        'returnMethod': 'https://schema.org/ReturnInStore',
-        'returnFees': 'https://schema.org/FreeReturn'
+        'returnMethod': 'http://schema.org/ReturnInStore',
+        'returnFees': 'http://schema.org/FreeReturn'
       }
     },
     'aggregateRating': {
