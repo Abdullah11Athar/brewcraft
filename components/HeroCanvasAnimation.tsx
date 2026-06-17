@@ -199,8 +199,8 @@ export default function HeroCanvasAnimation() {
       <div
         className="sticky w-full bg-[#1A0F0A]"
         style={{
-          top: 'var(--header-h, 64px)',
-          height: 'calc(var(--vh, 100vh) - var(--header-h, 64px))',
+          top: 0,
+          height: 'var(--vh, 100vh)',
         }}
       >
         <canvas

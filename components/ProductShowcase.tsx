@@ -94,12 +94,17 @@ function SplashBanner() {
       const H = canvas.offsetHeight || 580;
       if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }
       ctx.clearRect(0, 0, W, H);
-      const s = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+      let scale = 1.0;
+      if (window.innerWidth < 768) {
+        scale = 0.88; // Scale down slightly to fit the cup width
+      }
+
+      const s = Math.max(W / img.naturalWidth, H / img.naturalHeight) * scale;
       const w = img.naturalWidth * s;
       const h = img.naturalHeight * s;
       let drawX = (W - w) / 2;
       if (window.innerWidth < 768) {
-        drawX += W * 0.08; // Shift right on mobile to center the splash glass
+        drawX -= W * 0.045; // Shift left slightly to pull the right-aligned handle into the viewport
       }
       ctx.drawImage(img, drawX, (H - h) / 2, w, h);
     };
