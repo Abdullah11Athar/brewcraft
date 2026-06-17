@@ -184,6 +184,18 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
               <strong className="text-[#F5E6D3]">{guests}</strong>
             </div>
           </div>
+
+          {/* QR Code Section */}
+          <div className="mt-6 pt-4 border-t border-dashed border-[#3D2820] flex flex-col items-center justify-center gap-2">
+            <div className="bg-[#0A0300] p-1.5 rounded-lg border border-[#3D2820] inline-block">
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`https://brewcraft.shop/success?session_id=${sessionId}`)}&color=4f9c8f&bgcolor=0a0300`} 
+                alt="Ticket QR Code" 
+                className="w-24 h-24"
+              />
+            </div>
+            <span className="text-[10px] text-[#C9B8A0]/40 uppercase tracking-widest">Scan to Verify Ticket</span>
+          </div>
         </div>
 
         {/* Actions */}
