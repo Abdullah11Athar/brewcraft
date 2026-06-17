@@ -65,7 +65,7 @@ export default function Footer() {
               {[
                 { label: 'Home', href: '#top' },
                 { label: 'Our Menu', href: '#menu' },
-                { label: 'About Us', href: '#about' },
+                { label: 'Why Us', href: '#about' },
                 { label: 'Contact Us', href: '#contact' },
               ].map(l => (
                 <button key={l.href} onClick={() => scrollTo(l.href)}
