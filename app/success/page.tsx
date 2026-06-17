@@ -1,4 +1,11 @@
 import Link from 'next/link';
+import Stripe from 'stripe';
+
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+let stripe: Stripe | null = null;
+if (stripeSecretKey) {
+  stripe = new Stripe(stripeSecretKey);
+}
 
 interface SuccessPageProps {
   searchParams: {
@@ -12,16 +19,85 @@ interface SuccessPageProps {
   };
 }
 
-export default function SuccessPage({ searchParams }: SuccessPageProps) {
-  const area = searchParams.area || 'Rooftop Seating';
-  const date = searchParams.date || 'Tomorrow';
-  const time = searchParams.time || '7:30 PM';
-  const table = searchParams.table || 'Table 1';
-  const guests = searchParams.guests || '2 Guests';
-  const coffee = searchParams.coffee || 'Latte';
+export default async function SuccessPage({ searchParams }: SuccessPageProps) {
+  const sessionId = searchParams.session_id;
+
+  // If Stripe is configured, we MUST verify the session_id to prevent fake/unpaid reservation confirmations
+  let customerName = 'Guest';
+  let customerEmail = '';
+  let paymentVerified = false;
+  let errorMsg = '';
+
+  let area = searchParams.area || 'Rooftop Seating';
+  let date = searchParams.date || 'Tomorrow';
+  let time = searchParams.time || '7:30 PM';
+  let table = searchParams.table || 'Table 1';
+  let guests = searchParams.guests || '2 Guests';
+  let coffee = searchParams.coffee || 'Latte';
+
+  if (stripe) {
+    if (!sessionId) {
+      errorMsg = 'No active transaction session was detected.';
+    } else {
+      try {
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+        if (session && session.payment_status === 'paid') {
+          paymentVerified = true;
+          customerName = session.customer_details?.name || 'Valued Guest';
+          customerEmail = session.customer_details?.email || '';
+          
+          // Securely retrieve the exact metadata saved during session initialization
+          if (session.metadata) {
+            coffee = session.metadata.coffee_item || coffee;
+            area = session.metadata.seating_area || area;
+            date = session.metadata.reservation_date || date;
+            time = session.metadata.reservation_time || time;
+            table = session.metadata.table_number || table;
+            guests = session.metadata.guests || guests;
+          }
+        } else {
+          errorMsg = 'This payment session has not been successfully completed.';
+        }
+      } catch (err: any) {
+        console.error('Stripe session retrieval failed:', err);
+        errorMsg = 'Could not securely verify the transaction with Stripe.';
+      }
+    }
+  } else {
+    // If Stripe keys are not set locally, permit bypass for developer sandbox testing
+    paymentVerified = true;
+    customerName = 'Sandbox Tester';
+  }
+
+  if (!paymentVerified) {
+    return (
+      <div className="bg-[#1A0F0A] text-[#F5E6D3] min-h-screen flex items-center justify-center py-16 px-4 md:px-8 font-sans"
+        style={{ backgroundImage: 'radial-gradient(circle at center, #261710 0%, #050201 100%)' }}>
+        <div className="max-w-md w-full bg-[#1E0F08] border border-rose-950 rounded-2xl p-8 text-center shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-rose-600" />
+          <div className="w-16 h-16 bg-rose-950/20 border border-rose-500 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-5 text-3xl font-bold">
+            ✕
+          </div>
+          <h1 className="text-2xl font-bold mb-2 text-[#F5E6D3]" style={{ fontFamily: 'Playfair Display, serif' }}>
+            Verification <span className="text-rose-500">Failed</span>
+          </h1>
+          <p className="text-xs md:text-sm text-[#C9B8A0]/70 mb-8 leading-relaxed">
+            {errorMsg || 'We were unable to find or verify a completed Stripe payment record for this session.'}
+          </p>
+          <Link 
+            href="/" 
+            className="block w-full py-3 bg-[#241712] border border-[#3D2820] text-[#F5E6D3] text-sm font-semibold rounded-full hover:bg-[#2E1F1A] transition-colors"
+          >
+            Return to Homepage
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-[#1A0F0A] text-[#F5E6D3] min-h-screen flex items-center justify-center py-16 px-4 md:px-8 font-sans">
+    <div className="bg-[#1A0F0A] text-[#F5E6D3] min-h-screen flex items-center justify-center py-16 px-4 md:px-8 font-sans"
+      style={{ backgroundImage: 'radial-gradient(circle at center, #261710 0%, #050201 100%)' }}>
       <div className="max-w-md w-full bg-[#1E0F08] border border-[#3D2820] rounded-2xl p-8 text-center shadow-2xl relative overflow-hidden">
         {/* Decorative Top Glow */}
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#4F9C8F] via-[#D4A574] to-[#4F9C8F]" />
@@ -38,7 +114,7 @@ export default function SuccessPage({ searchParams }: SuccessPageProps) {
         
         {/* Description */}
         <p className="text-xs md:text-sm text-[#C9B8A0]/70 mb-6 leading-relaxed">
-          Your table and order have been reserved at BrewCraft. A secure transaction record has been processed by Stripe.
+          Thank you, <strong className="text-white">{customerName}</strong>! Your table and order have been reserved at BrewCraft. A secure transaction record has been processed by Stripe.
         </p>
 
         {/* Reservation Ticket Stub */}
@@ -52,6 +128,12 @@ export default function SuccessPage({ searchParams }: SuccessPageProps) {
           </h3>
 
           <div className="space-y-3 text-xs">
+            {customerEmail && (
+              <div className="flex justify-between pb-1 border-b border-[#2B1B15]/50">
+                <span className="text-[#C9B8A0]/60">Email:</span>
+                <strong className="text-[#F5E6D3]">{customerEmail}</strong>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-[#C9B8A0]/60">Item Ordered:</span>
               <strong className="text-[#F5E6D3]">{coffee}</strong>
