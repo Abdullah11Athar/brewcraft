@@ -31,13 +31,44 @@ export default function Home() {
     }
   }, []);
 
+  // Intersection Observer to update URL bar dynamically on manual scroll
+  useEffect(() => {
+    const sections = ['top', 'menu', 'why', 'contact'];
+    const observerOptions = {
+      root: null,
+      rootMargin: '-50% 0px -50% 0px',
+      threshold: 0
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id;
+          const hash = id === 'top' ? '/' : `#${id}`;
+          if (window.location.hash !== hash && !(hash === '/' && window.location.hash === '')) {
+            window.history.pushState(null, '', hash);
+          }
+        }
+      });
+    }, observerOptions);
+
+    sections.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     // overflow-x-hidden is NOT on main — it breaks position:sticky
-    <main className="bg-[#1A0F0A] min-h-screen">
+    <main className="bg-[#1A0F0A] min-h-screen" id="top">
       <Header />
       <HeroCanvasAnimation />
       <div className="overflow-x-hidden">
-        <ProductShowcase />
+        <div id="menu">
+          <ProductShowcase />
+        </div>
         <div id="why">
           <FeatureSection />
         </div>

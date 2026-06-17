@@ -59,7 +59,7 @@ export default function Footer() {
               {[
                 { label: 'Home', href: '#top' },
                 { label: 'Our Menu', href: '#menu' },
-                { label: 'Why BrewCraft', href: '#why' },
+                { label: 'About Us', href: '#why' },
                 { label: 'Contact Us', href: '#contact' },
               ].map(l => (
                 <button key={l.href} onClick={() => scrollTo(l.href)}

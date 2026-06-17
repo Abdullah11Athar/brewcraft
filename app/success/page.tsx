@@ -73,17 +73,37 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
     return (
       <div className="bg-[#1A0F0A] text-[#F5E6D3] min-h-screen flex items-center justify-center py-16 px-4 md:px-8 font-sans"
         style={{ backgroundImage: 'radial-gradient(circle at center, #261710 0%, #050201 100%)' }}>
-        <div className="max-w-md w-full bg-[#1E0F08] border border-rose-950 rounded-2xl p-8 text-center shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-rose-600" />
+        <div className="max-w-md w-full bg-[#1E0F08] border border-[#3D2820] rounded-2xl p-8 text-center shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-rose-500 via-[#D4A574] to-rose-500" />
           <div className="w-16 h-16 bg-rose-950/20 border border-rose-500 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-5 text-3xl font-bold">
-            ✕
+            🔑
           </div>
           <h1 className="text-2xl font-bold mb-2 text-[#F5E6D3]" style={{ fontFamily: 'Playfair Display, serif' }}>
-            Verification <span className="text-rose-500">Failed</span>
+            Verification <span className="text-[#4F9C8F]">Required</span>
           </h1>
-          <p className="text-xs md:text-sm text-[#C9B8A0]/70 mb-8 leading-relaxed">
-            {errorMsg || 'We were unable to find or verify a completed Stripe payment record for this session.'}
+          <p className="text-xs md:text-sm text-[#C9B8A0]/70 mb-6 leading-relaxed">
+            Please enter the Stripe Reservation Token sent to your email to securely retrieve your booking ticket.
           </p>
+
+          <form action="/success" method="GET" className="space-y-4 mb-6">
+            <input
+              type="text"
+              name="session_id"
+              placeholder="e.g. cs_test_..."
+              className="w-full bg-[#0A0300] border border-[#3D2820] rounded-xl px-4 py-3 text-[#F5E6D3] placeholder-[#C9B8A0]/30 text-sm focus:outline-none focus:border-[#4F9C8F] transition-colors text-center font-mono"
+              required
+            />
+            {errorMsg && (
+              <p className="text-rose-500 text-xs mt-1 font-medium">⚠️ {errorMsg}</p>
+            )}
+            <button
+              type="submit"
+              className="w-full py-3 bg-gradient-to-r from-[#4F9C8F] to-[#2d6b62] text-white rounded-xl text-sm font-semibold hover:shadow-lg hover:shadow-[#4F9C8F]/20 transition-all duration-300 active:scale-[0.98]"
+            >
+              Verify Reservation
+            </button>
+          </form>
+
           <Link 
             href="/" 
             className="block w-full py-3 bg-[#241712] border border-[#3D2820] text-[#F5E6D3] text-sm font-semibold rounded-full hover:bg-[#2E1F1A] transition-colors"
