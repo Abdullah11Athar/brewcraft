@@ -21,6 +21,7 @@ interface SuccessPageProps {
 
 export default async function SuccessPage({ searchParams }: SuccessPageProps) {
   const sessionId = searchParams.session_id;
+  const ticketId = sessionId ? `BC-${sessionId.substring(8, 16).toUpperCase()}` : 'BC-SANDBOX';
 
   // If Stripe is configured, we MUST verify the session_id to prevent fake/unpaid reservation confirmations
   let customerName = 'Guest';
@@ -148,6 +149,10 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
           </h3>
 
           <div className="space-y-3 text-xs">
+            <div className="flex justify-between pb-1 border-b border-[#2B1B15]/50">
+              <span className="text-[#C9B8A0]/60">Ticket ID:</span>
+              <strong className="text-[#4F9C8F] font-mono font-bold">{ticketId}</strong>
+            </div>
             {customerEmail && (
               <div className="flex justify-between pb-1 border-b border-[#2B1B15]/50">
                 <span className="text-[#C9B8A0]/60">Email:</span>
