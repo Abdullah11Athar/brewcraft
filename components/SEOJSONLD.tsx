@@ -73,7 +73,27 @@ export default function SEOJSONLD() {
       'priceCurrency': 'USD',
       'itemCondition': 'https://schema.org/NewCondition',
       'availability': 'https://schema.org/InStock',
-      'url': 'https://brewcraft.shop/#menu'
+      'url': 'https://brewcraft.shop/#menu',
+      'shippingDetails': {
+        '@type': 'OfferShippingDetails',
+        'shippingRate': {
+          '@type': 'MonetaryAmount',
+          'value': '0',
+          'currency': 'USD'
+        },
+        'shippingDestination': {
+          '@type': 'DefinedRegion',
+          'addressCountry': 'US'
+        }
+      },
+      'hasMerchantReturnPolicy': {
+        '@type': 'MerchantReturnPolicy',
+        'applicableCountry': 'US',
+        'returnPolicyCategory': 'https://schema.org/MerchantReturnFiniteReturnPeriod',
+        'merchantReturnDays': 14,
+        'returnMethod': 'https://schema.org/ReturnInStore',
+        'returnFees': 'https://schema.org/FreeReturn'
+      }
     },
     'aggregateRating': {
       '@type': 'AggregateRating',
