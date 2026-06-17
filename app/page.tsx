@@ -87,7 +87,7 @@ export default function Home() {
       <Header />
       <HeroCanvasAnimation />
       <div className="overflow-x-hidden">
-        <div id="menu">
+        <div>
           <ProductShowcase />
         </div>
         <div id="about">
