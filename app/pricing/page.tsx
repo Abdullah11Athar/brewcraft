@@ -97,6 +97,35 @@ export default function PricingPage() {
 
         </div>
 
+        {/* Facilities & Amenities Section */}
+        <div className="mt-16 pt-12 border-t border-[#3D2820]/60">
+          <h2 className="text-center text-3xl font-bold text-[#D4A574] mb-10" style={{ fontFamily: 'Playfair Display, serif' }}>
+            ✨ Premium Facilities & Amenities
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div className="bg-[#1E0F08]/40 border border-[#3D2820]/40 rounded-xl p-5 hover:border-[#4F9C8F]/50 transition-colors">
+              <div className="text-3xl mb-3">📶</div>
+              <h4 className="font-bold text-[#F5E6D3] text-sm mb-1">Free High-Speed Wi-Fi</h4>
+              <p className="text-[11px] text-[#C9B8A0]/60">Seamless fiber network for co-working & browsing.</p>
+            </div>
+            <div className="bg-[#1E0F08]/40 border border-[#3D2820]/40 rounded-xl p-5 hover:border-[#4F9C8F]/50 transition-colors">
+              <div className="text-3xl mb-3">🔌</div>
+              <h4 className="font-bold text-[#F5E6D3] text-sm mb-1">Power Outlets</h4>
+              <p className="text-[11px] text-[#C9B8A0]/60">Dedicated power plugs under every single table.</p>
+            </div>
+            <div className="bg-[#1E0F08]/40 border border-[#3D2820]/40 rounded-xl p-5 hover:border-[#4F9C8F]/50 transition-colors">
+              <div className="text-3xl mb-3">🚗</div>
+              <h4 className="font-bold text-[#F5E6D3] text-sm mb-1">Valet Parking</h4>
+              <p className="text-[11px] text-[#C9B8A0]/60">Hassle-free parking space for booking guests.</p>
+            </div>
+            <div className="bg-[#1E0F08]/40 border border-[#3D2820]/40 rounded-xl p-5 hover:border-[#4F9C8F]/50 transition-colors">
+              <div className="text-3xl mb-3">❄️</div>
+              <h4 className="font-bold text-[#F5E6D3] text-sm mb-1">Climate Control</h4>
+              <p className="text-[11px] text-[#C9B8A0]/60">Fully air-conditioned lounge with cozy lighting.</p>
+            </div>
+          </div>
+        </div>
+
         {/* Pricing Footnote & Call to Action */}
         <div className="mt-16 text-center border-t border-[#3D2820]/40 pt-8">
           <p className="text-xs text-[#C9B8A0]/50 mb-6 max-w-md mx-auto">
