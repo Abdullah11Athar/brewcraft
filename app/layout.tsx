@@ -8,6 +8,20 @@ export const metadata: Metadata = {
   alternates: {
     canonical: '/',
   },
+  keywords: [
+    'BrewCraft',
+    'BrewCraft Coffee',
+    'artisan coffee',
+    'specialty coffee shop',
+    'best coffee',
+    'cappuccino',
+    'latte',
+    'mocha',
+    'coffee shop Karachi',
+    'Pakistan specialty coffee',
+    'espresso bar',
+    'premium coffee beans'
+  ],
   openGraph: {
     title: 'BrewCraft | Artisan Coffee Experience',
     description: 'Premium coffee experiences crafted to perfection. Every sip defies gravity.',
