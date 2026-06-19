@@ -1,0 +1,16 @@
+{
+  "name": "brewcraft-smm-agent",
+  "version": "1.0.0",
+  "description": "Background 24/7 worker daemon and WhatsApp Web bridge client for BrewCraft SMM Agent",
+  "main": "daemon.js",
+  "scripts": {
+    "start:daemon": "node daemon.js",
+    "start:bridge": "node whatsapp-bridge.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.6.0",
+    "express": "^4.19.2",
+    "node-fetch": "^2.7.0",
+    "qrcode-terminal": "^0.12.0"
+  }
+}

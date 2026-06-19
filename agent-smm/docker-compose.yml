@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  whatsapp-bridge:
+    build: .
+    container_name: brewcraft-whatsapp-bridge
+    command: npm run start:bridge
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./auth_info_baileys:/app/auth_info_baileys
+    restart: always
+
+  smm-daemon:
+    build: .
+    container_name: brewcraft-smm-daemon
+    command: npm run start:daemon
+    environment:
+      - BREWCRAFT_API_URL=http://host.docker.internal:3000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: always
+    depends_on:
+      - whatsapp-bridge
