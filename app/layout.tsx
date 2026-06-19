@@ -11,6 +11,10 @@ export const metadata: Metadata = {
   keywords: [
     'BrewCraft',
     'BrewCraft Coffee',
+    'brewcraft coffee',
+    'brew craft coffee',
+    'brewcraft.shop',
+    'brew-craft-coffee',
     'artisan coffee',
     'specialty coffee shop',
     'best coffee',
