@@ -84,12 +84,27 @@ export default function SEOJSONLD() {
         'shippingDestination': {
           '@type': 'DefinedRegion',
           'addressCountry': 'US'
+        },
+        'deliveryTime': {
+          '@type': 'ShippingDeliveryTime',
+          'handlingTime': {
+            '@type': 'QuantitativeValue',
+            'minValue': 0,
+            'maxValue': 1,
+            'unitCode': 'DAY'
+          },
+          'transitTime': {
+            '@type': 'QuantitativeValue',
+            'minValue': 0,
+            'maxValue': 1,
+            'unitCode': 'DAY'
+          }
         }
       },
       'hasMerchantReturnPolicy': {
         '@type': 'MerchantReturnPolicy',
         'applicableCountry': 'US',
-        'returnPolicyCategory': 'http://schema.org/MerchantReturnFiniteReturnPeriod',
+        'returnPolicyCategory': 'http://schema.org/MerchantReturnFiniteReturnWindow',
         'merchantReturnDays': 14,
         'returnMethod': 'http://schema.org/ReturnInStore',
         'returnFees': 'http://schema.org/FreeReturn'
