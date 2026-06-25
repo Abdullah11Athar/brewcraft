@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: brewcraft-nextjs-web
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - SMM_AUTH_TOKEN
+      - STRIPE_SECRET_KEY
+      - NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+    restart: always
+
+  whatsapp-bridge:
+    build:
+      context: ./agent-smm
+      dockerfile: Dockerfile
+    container_name: brewcraft-whatsapp-bridge
+    command: npm run start:bridge
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./agent-smm/auth_info_baileys:/app/auth_info_baileys
+    restart: always
+
+  smm-daemon:
+    build:
+      context: ./agent-smm
+      dockerfile: Dockerfile
+    container_name: brewcraft-smm-daemon
+    command: npm run start:daemon
+    environment:
+      - BREWCRAFT_API_URL=http://web:3000
+    restart: always
+    depends_on:
+      - web
+      - whatsapp-bridge

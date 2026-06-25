@@ -2,7 +2,7 @@ import { getSettings, addLog, SMMDraft } from './smm-db';
 
 // Simple helper to call APIs without external libraries
 async function callLlm(systemPrompt: string, userPrompt: string): Promise<string> {
-  const settings = getSettings();
+  const settings = await getSettings();
   const provider = settings.activeLlmProvider;
 
   if (provider === 'gemini') {
@@ -102,11 +102,11 @@ async function callLlm(systemPrompt: string, userPrompt: string): Promise<string
 
 // Conduct a web search or simulate a web crawl based on keywords
 export async function searchRelatedContent(customQuery?: string): Promise<string> {
-  const settings = getSettings();
+  const settings = await getSettings();
   const keywords = customQuery ? [customQuery] : settings.searchKeywords;
   const targetKeyword = keywords[Math.floor(Math.random() * keywords.length)] || 'specialty coffee';
 
-  addLog('info', `Searching web for: "${targetKeyword}"`);
+  await addLog('info', `Searching web for: "${targetKeyword}"`);
 
   // Simulated search results that mimic a web crawler if no custom Google/Serper API key is set
   // This keeps the agent fully functional out of the box.
@@ -145,7 +145,7 @@ export async function searchRelatedContent(customQuery?: string): Promise<string
 
   const selected = matchedNews[0] || mockNews[0];
 
-  addLog('info', `Search completed. Found news: "${selected.title}"`);
+  await addLog('info', `Search completed. Found news: "${selected.title}"`);
   
   return JSON.stringify({
     query: targetKeyword,
@@ -159,11 +159,11 @@ export async function searchRelatedContent(customQuery?: string): Promise<string
 
 // Generate image using AI or fallback to curated Unsplash image
 export async function generateImage(prompt: string): Promise<string> {
-  const settings = getSettings();
+  const settings = await getSettings();
   
   try {
     if (settings.activeLlmProvider === 'openai' && settings.openAiApiKey) {
-      addLog('info', `Generating image with DALL-E for prompt: "${prompt.substring(0, 50)}..."`);
+      await addLog('info', `Generating image with DALL-E for prompt: "${prompt.substring(0, 50)}..."`);
       const response = await fetch('https://api.openai.com/v1/images/generations', {
         method: 'POST',
         headers: {
@@ -233,7 +233,7 @@ JSON Structure:
     const parsed = JSON.parse(cleanJson);
     return parsed;
   } catch (error: any) {
-    addLog('error', `LLM drafting failed for ${platform}: ${error.message || error}`);
+    await addLog('error', `LLM drafting failed for ${platform}: ${error.message || error}`);
     // Return a default mock draft to prevent crashes
     const searchData = JSON.parse(searchResultJson);
     return {
@@ -262,7 +262,7 @@ export async function generateAllPlatformDrafts(searchResultJson: string): Promi
   const drafts: Omit<SMMDraft, 'id' | 'createdAt'>[] = [];
 
   for (const platform of platforms) {
-    addLog('info', `Drafting content for platform: ${platform}`);
+    await addLog('info', `Drafting content for platform: ${platform}`);
     const draftDetails = await draftPostForPlatform(platform, searchResultJson);
     
     // Generate/fetch image URL for the post

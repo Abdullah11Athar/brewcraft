@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     }
     const { query } = await request.json().catch(() => ({ query: undefined }));
 
-    addLog('info', 'Agent triggered manually or via cron scheduler.');
+    await addLog('info', 'Agent triggered manually or via cron scheduler.');
 
     // 1. Search web/news
     const searchResultJson = await searchRelatedContent(query);
@@ -23,11 +23,11 @@ export async function POST(request: Request) {
     // 3. Save all drafts as pending_approval
     const savedDrafts = [];
     for (const d of drafts) {
-      const saved = saveDraft(d);
+      const saved = await saveDraft(d);
       savedDrafts.push(saved);
     }
 
-    addLog('info', `Successfully drafted ${savedDrafts.length} platform posts for topic: "${searchData.resultTitle}"`);
+    await addLog('info', `Successfully drafted ${savedDrafts.length} platform posts for topic: "${searchData.resultTitle}"`);
 
     // 4. Send WhatsApp Alert Notification for user review
     const host = request.headers.get('host') || 'localhost:3000';
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
       drafts: savedDrafts
     });
   } catch (err: any) {
-    addLog('error', `Agent execution failed: ${err.message || err}`);
+    await addLog('error', `Agent execution failed: ${err.message || err}`);
     return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
   }
 }

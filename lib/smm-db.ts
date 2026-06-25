@@ -1,3 +1,4 @@
+import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import path from 'path';
 
@@ -45,7 +46,7 @@ export interface SMMSettings {
   linkedinClientId: string;
   linkedinClientSecret: string;
   linkedinAccessToken: string;
-  linkedinUrn: string; // User ID or Organization ID
+  linkedinUrn: string;
 
   facebookPageId: string;
   facebookAccessToken: string;
@@ -83,7 +84,7 @@ const defaultSettings: SMMSettings = {
   openAiApiKey: '',
   geminiApiKey: '',
   activeLlmProvider: 'gemini',
-  whatsappNumber: '923171036774', // Default from components/WhatsApp.tsx
+  whatsappNumber: '923171036774',
   whatsappAlertType: 'callmebot',
   callmebotApiKey: '',
   twilioAccountSid: '',
@@ -109,8 +110,13 @@ const defaultSettings: SMMSettings = {
   searchFrequencyHours: 12,
 };
 
-// Initialize DB if not exists
-export function initDb(): SMMDatabaseSchema {
+// Initialize Supabase client if credentials exist in environment variables
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+
+// Local DB initialization fallback
+function initDbLocal(): SMMDatabaseSchema {
   const dir = path.dirname(DB_PATH);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
@@ -123,7 +129,7 @@ export function initDb(): SMMDatabaseSchema {
       logs: [{
         timestamp: new Date().toISOString(),
         level: 'info',
-        message: 'Social Media Manager Database initialized.'
+        message: 'Social Media Manager Database initialized locally.'
       }],
     };
     fs.writeFileSync(DB_PATH, JSON.stringify(defaultDb, null, 2), 'utf8');
@@ -133,18 +139,16 @@ export function initDb(): SMMDatabaseSchema {
   try {
     const raw = fs.readFileSync(DB_PATH, 'utf8');
     const parsed = JSON.parse(raw) as SMMDatabaseSchema;
-    // Merge missing settings keys
     parsed.settings = { ...defaultSettings, ...parsed.settings };
     return parsed;
   } catch (err) {
-    console.error('Error reading SMM DB, resetting to defaults', err);
     const defaultDb: SMMDatabaseSchema = {
       settings: defaultSettings,
       drafts: [],
       logs: [{
         timestamp: new Date().toISOString(),
         level: 'error',
-        message: 'Failed to read database, reset to default configuration.'
+        message: 'Failed to read local database, reset to default configuration.'
       }],
     };
     fs.writeFileSync(DB_PATH, JSON.stringify(defaultDb, null, 2), 'utf8');
@@ -152,73 +156,168 @@ export function initDb(): SMMDatabaseSchema {
   }
 }
 
-export function saveDb(data: SMMDatabaseSchema): void {
+function saveDbLocal(data: SMMDatabaseSchema): void {
   fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
 }
 
-export function getSettings(): SMMSettings {
-  const db = initDb();
+// Universal database handlers (supports async operations)
+export async function getSettings(): Promise<SMMSettings> {
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('smm_state')
+        .select('value')
+        .eq('key', 'settings')
+        .single();
+      if (data && data.value) {
+        return { ...defaultSettings, ...data.value };
+      }
+    } catch (err) {
+      console.error('Supabase read settings failed, trying fallback:', err);
+    }
+  }
+  const db = initDbLocal();
   return db.settings;
 }
 
-export function updateSettings(settings: Partial<SMMSettings>): SMMSettings {
-  const db = initDb();
-  db.settings = { ...db.settings, ...settings };
-  saveDb(db);
-  addLog('info', 'Settings updated successfully.');
-  return db.settings;
+export async function updateSettings(settings: Partial<SMMSettings>): Promise<SMMSettings> {
+  const current = await getSettings();
+  const updated = { ...current, ...settings };
+
+  if (supabase) {
+    try {
+      await supabase.from('smm_state').upsert({ key: 'settings', value: updated });
+      await addLog('info', 'Settings updated successfully in cloud database.');
+      return updated;
+    } catch (err) {
+      console.error('Supabase write settings failed:', err);
+    }
+  }
+
+  const db = initDbLocal();
+  db.settings = updated;
+  saveDbLocal(db);
+  await addLog('info', 'Settings updated successfully in local database.');
+  return updated;
 }
 
-export function getDrafts(): SMMDraft[] {
-  const db = initDb();
+export async function getDrafts(): Promise<SMMDraft[]> {
+  if (supabase) {
+    try {
+      const { data } = await supabase
+        .from('smm_state')
+        .select('value')
+        .eq('key', 'drafts')
+        .single();
+      if (data && data.value) {
+        return data.value as SMMDraft[];
+      }
+    } catch (err) {
+      console.error('Supabase read drafts failed:', err);
+    }
+  }
+  const db = initDbLocal();
   return db.drafts;
 }
 
-export function saveDraft(draft: Omit<SMMDraft, 'id' | 'createdAt'> & { id?: string }): SMMDraft {
-  const db = initDb();
+export async function saveDraft(draft: Omit<SMMDraft, 'id' | 'createdAt'> & { id?: string }): Promise<SMMDraft> {
+  const drafts = await getDrafts();
   const now = new Date().toISOString();
-  
+
   const finalDraft: SMMDraft = {
     ...draft,
     id: draft.id || `draft_${Math.random().toString(36).substring(2, 9)}_${Date.now()}`,
-    createdAt: now,
+    createdAt: draft.id ? undefined : now, // set only on creation
   } as SMMDraft;
 
-  const existingIndex = db.drafts.findIndex(d => d.id === finalDraft.id);
+  const existingIndex = drafts.findIndex(d => d.id === finalDraft.id);
   if (existingIndex > -1) {
-    db.drafts[existingIndex] = { ...db.drafts[existingIndex], ...draft } as SMMDraft;
+    drafts[existingIndex] = { ...drafts[existingIndex], ...draft } as SMMDraft;
   } else {
-    db.drafts.unshift(finalDraft);
+    finalDraft.createdAt = now;
+    drafts.unshift(finalDraft);
   }
 
-  saveDb(db);
+  if (supabase) {
+    try {
+      await supabase.from('smm_state').upsert({ key: 'drafts', value: drafts });
+      return finalDraft;
+    } catch (err) {
+      console.error('Supabase write drafts failed:', err);
+    }
+  }
+
+  const db = initDbLocal();
+  db.drafts = drafts;
+  saveDbLocal(db);
   return finalDraft;
 }
 
-export function deleteDraft(id: string): boolean {
-  const db = initDb();
-  const originalLength = db.drafts.length;
-  db.drafts = db.drafts.filter(d => d.id !== id);
-  saveDb(db);
-  return db.drafts.length < originalLength;
+export async function deleteDraft(id: string): Promise<boolean> {
+  const drafts = await getDrafts();
+  const originalLength = drafts.length;
+  const filtered = drafts.filter(d => d.id !== id);
+
+  if (filtered.length === originalLength) {
+    return false;
+  }
+
+  if (supabase) {
+    try {
+      await supabase.from('smm_state').upsert({ key: 'drafts', value: filtered });
+      return true;
+    } catch (err) {
+      console.error('Supabase delete draft failed:', err);
+    }
+  }
+
+  const db = initDbLocal();
+  db.drafts = filtered;
+  saveDbLocal(db);
+  return true;
 }
 
-export function addLog(level: 'info' | 'warn' | 'error', message: string): void {
-  const db = initDb();
+export async function getLogs(): Promise<SMMLog[]> {
+  if (supabase) {
+    try {
+      const { data } = await supabase
+        .from('smm_state')
+        .select('value')
+        .eq('key', 'logs')
+        .single();
+      if (data && data.value) {
+        return data.value as SMMLog[];
+      }
+    } catch (err) {
+      console.error('Supabase read logs failed:', err);
+    }
+  }
+  const db = initDbLocal();
+  return db.logs;
+}
+
+export async function addLog(level: 'info' | 'warn' | 'error', message: string): Promise<void> {
+  const logs = await getLogs();
   const log: SMMLog = {
     timestamp: new Date().toISOString(),
     level,
     message,
   };
-  db.logs.unshift(log);
-  // Cap logs at 500 entries
-  if (db.logs.length > 500) {
-    db.logs = db.logs.slice(0, 500);
-  }
-  saveDb(db);
-}
+  logs.unshift(log);
 
-export function getLogs(): SMMLog[] {
-  const db = initDb();
-  return db.logs;
+  // Cap logs at 500 entries
+  const trimmed = logs.slice(0, 500);
+
+  if (supabase) {
+    try {
+      await supabase.from('smm_state').upsert({ key: 'logs', value: trimmed });
+      return;
+    } catch (err) {
+      console.error('Supabase write logs failed:', err);
+    }
+  }
+
+  const db = initDbLocal();
+  db.logs = trimmed;
+  saveDbLocal(db);
 }

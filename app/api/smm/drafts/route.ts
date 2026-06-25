@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     if (!verifySmmAuth(request)) {
       return unauthorizedResponse();
     }
-    const drafts = getDrafts();
+    const drafts = await getDrafts();
     return NextResponse.json(drafts);
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     if (!body.title || !body.type) {
       return NextResponse.json({ error: 'Title and Type are required.' }, { status: 400 });
     }
-    const saved = saveDraft(body);
+    const saved = await saveDraft(body);
     return NextResponse.json({ success: true, draft: saved });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
@@ -40,7 +40,7 @@ export async function DELETE(request: Request) {
     if (!id) {
       return NextResponse.json({ error: 'ID is required.' }, { status: 400 });
     }
-    const success = deleteDraft(id);
+    const success = await deleteDraft(id);
     return NextResponse.json({ success });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });

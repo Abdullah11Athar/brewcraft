@@ -14,9 +14,17 @@ export function verifySmmAuth(request: Request): boolean {
     }
 
     const token = authHeader.substring(7).trim();
-    const serverToken = (process.env.SMM_AUTH_TOKEN || FALLBACK_TOKEN).trim();
+    const serverToken = process.env.SMM_AUTH_TOKEN;
 
-    return token === serverToken;
+    if (!serverToken) {
+      // In production, do not allow the guessable fallback token under any circumstances
+      if (process.env.NODE_ENV === 'production') {
+        return false;
+      }
+      return token === FALLBACK_TOKEN;
+    }
+
+    return token === serverToken.trim();
   } catch {
     return false;
   }

@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     if (!verifySmmAuth(request)) {
       return unauthorizedResponse();
     }
-    const settings = getSettings();
+    const settings = await getSettings();
     return NextResponse.json(settings);
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       return unauthorizedResponse();
     }
     const body = await request.json();
-    const updated = updateSettings(body);
+    const updated = await updateSettings(body);
     return NextResponse.json({ success: true, settings: updated });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });

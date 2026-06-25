@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     if (!verifySmmAuth(request)) {
       return unauthorizedResponse();
     }
-    const logs = getLogs();
+    const logs = await getLogs();
     return NextResponse.json(logs);
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });

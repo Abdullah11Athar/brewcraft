@@ -8,10 +8,10 @@ interface PublishResult {
 }
 
 export async function publishToPlatform(draft: SMMDraft): Promise<PublishResult> {
-  const settings = getSettings();
+  const settings = await getSettings();
   const type = draft.type;
 
-  addLog('info', `Initiating publishing for draft ID: ${draft.id} on channel: ${type}`);
+  await addLog('info', `Initiating publishing for draft ID: ${draft.id} on channel: ${type}`);
 
   try {
     switch (type) {
@@ -19,7 +19,7 @@ export async function publishToPlatform(draft: SMMDraft): Promise<PublishResult>
         const apiKey = settings.twitterApiKey;
         const accessToken = settings.twitterAccessToken;
         if (!apiKey || !accessToken) {
-          return mockPublishSuccess(draft, 'Twitter/X');
+          return await mockPublishSuccess(draft, 'Twitter/X');
         }
 
         // X v2 Tweet API
@@ -41,14 +41,14 @@ export async function publishToPlatform(draft: SMMDraft): Promise<PublishResult>
         const tweetId = data?.data?.id;
         const tweetUrl = tweetId ? `https://twitter.com/user/status/${tweetId}` : undefined;
         
-        return handlePublishSuccess(draft, 'Twitter/X', tweetUrl);
+        return await handlePublishSuccess(draft, 'Twitter/X', tweetUrl);
       }
 
       case 'linkedin': {
         const token = settings.linkedinAccessToken;
-        const urn = settings.linkedinUrn; // person or organization URN (e.g. urn:li:person:123456)
+        const urn = settings.linkedinUrn;
         if (!token || !urn) {
-          return mockPublishSuccess(draft, 'LinkedIn');
+          return await mockPublishSuccess(draft, 'LinkedIn');
         }
 
         // LinkedIn UGC Share API
@@ -83,14 +83,14 @@ export async function publishToPlatform(draft: SMMDraft): Promise<PublishResult>
         const linkedinId = data?.id;
         const postUrl = linkedinId ? `https://www.linkedin.com/feed/update/${linkedinId}` : undefined;
 
-        return handlePublishSuccess(draft, 'LinkedIn', postUrl);
+        return await handlePublishSuccess(draft, 'LinkedIn', postUrl);
       }
 
       case 'facebook': {
         const pageId = settings.facebookPageId;
         const token = settings.facebookAccessToken;
         if (!pageId || !token) {
-          return mockPublishSuccess(draft, 'Facebook');
+          return await mockPublishSuccess(draft, 'Facebook');
         }
 
         // Facebook Page Feed API
@@ -114,7 +114,7 @@ export async function publishToPlatform(draft: SMMDraft): Promise<PublishResult>
         const postId = data?.id;
         const postUrl = postId ? `https://facebook.com/${postId}` : undefined;
 
-        return handlePublishSuccess(draft, 'Facebook', postUrl);
+        return await handlePublishSuccess(draft, 'Facebook', postUrl);
       }
 
       case 'instagram': {
@@ -122,11 +122,10 @@ export async function publishToPlatform(draft: SMMDraft): Promise<PublishResult>
         const token = settings.instagramAccessToken;
         const imageUrl = draft.imageUrls?.[0];
         if (!accountId || !token || !imageUrl) {
-          return mockPublishSuccess(draft, 'Instagram');
+          return await mockPublishSuccess(draft, 'Instagram');
         }
 
         // Instagram Graph API requires first posting container then publishing
-        // Step 1: Create media container
         const containerUrl = `https://graph.facebook.com/v19.0/${accountId}/media`;
         const containerRes = await fetch(containerUrl, {
           method: 'POST',
@@ -150,7 +149,6 @@ export async function publishToPlatform(draft: SMMDraft): Promise<PublishResult>
           throw new Error('Instagram failed to return creation ID.');
         }
 
-        // Step 2: Publish media container
         const publishUrl = `https://graph.facebook.com/v19.0/${accountId}/media_publish`;
         const publishRes = await fetch(publishUrl, {
           method: 'POST',
@@ -167,14 +165,14 @@ export async function publishToPlatform(draft: SMMDraft): Promise<PublishResult>
         }
 
         const publishData = await publishRes.json();
-        return handlePublishSuccess(draft, 'Instagram', `https://instagram.com/p/${publishData?.id || ''}`);
+        return await handlePublishSuccess(draft, 'Instagram', `https://instagram.com/p/${publishData?.id || ''}`);
       }
 
       case 'threads': {
         const userId = settings.threadsUserId;
         const token = settings.threadsAccessToken;
         if (!userId || !token) {
-          return mockPublishSuccess(draft, 'Threads');
+          return await mockPublishSuccess(draft, 'Threads');
         }
 
         // Meta Threads API
@@ -213,14 +211,14 @@ export async function publishToPlatform(draft: SMMDraft): Promise<PublishResult>
           throw new Error(`Threads Publish Error: ${err}`);
         }
 
-        return handlePublishSuccess(draft, 'Threads');
+        return await handlePublishSuccess(draft, 'Threads');
       }
 
       case 'newsletter': {
         const apiKey = settings.resendApiKey;
         const sender = settings.resendSenderEmail;
         if (!apiKey) {
-          return mockPublishSuccess(draft, 'Resend Email Newsletter');
+          return await mockPublishSuccess(draft, 'Resend Email Newsletter');
         }
 
         // Resend Send Email API
@@ -232,7 +230,7 @@ export async function publishToPlatform(draft: SMMDraft): Promise<PublishResult>
           },
           body: JSON.stringify({
             from: `BrewCraft Newsletter <${sender}>`,
-            to: ['customer-list@brewcraft.shop'], // Placeholder or configurable mailing list
+            to: ['customer-list@brewcraft.shop'],
             subject: draft.title,
             html: draft.htmlContent || `<p>${draft.content}</p>`
           })
@@ -244,12 +242,10 @@ export async function publishToPlatform(draft: SMMDraft): Promise<PublishResult>
         }
 
         const data = await response.json();
-        return handlePublishSuccess(draft, 'Resend Newsletter', `https://resend.com/emails/${data.id || ''}`);
+        return await handlePublishSuccess(draft, 'Resend Newsletter', `https://resend.com/emails/${data.id || ''}`);
       }
 
       case 'whatsapp_status': {
-        // WhatsApp Status does not have an official public posting API.
-        // The most practical workflow is sending the media & caption to the user's WhatsApp number so they can instantly publish it with one click!
         const imageUrl = draft.imageUrls?.[0] || '';
         const caption = draft.content;
 
@@ -257,24 +253,22 @@ export async function publishToPlatform(draft: SMMDraft): Promise<PublishResult>
         
         await sendWhatsAppAlert(notificationMsg);
         
-        return handlePublishSuccess(draft, 'WhatsApp Status', imageUrl);
+        return await handlePublishSuccess(draft, 'WhatsApp Status', imageUrl);
       }
 
       case 'article': {
-        // For articles, we save them as published in our site database (e.g. static blogs or database)
-        // We will mock this publishing successfully to the website database.
-        return handlePublishSuccess(draft, 'Website Blog/Article', '/blog');
+        return await handlePublishSuccess(draft, 'Website Blog/Article', '/blog');
       }
 
       default:
         throw new Error(`Unsupported post type: ${type}`);
     }
   } catch (error: any) {
-    addLog('error', `Failed to publish draft ID ${draft.id} to ${type}: ${error.message || error}`);
+    await addLog('error', `Failed to publish draft ID ${draft.id} to ${type}: ${error.message || error}`);
     
     draft.status = 'failed';
     draft.error = error.message || String(error);
-    saveDraft(draft);
+    await saveDraft(draft);
 
     return {
       success: false,
@@ -283,8 +277,8 @@ export async function publishToPlatform(draft: SMMDraft): Promise<PublishResult>
   }
 }
 
-function handlePublishSuccess(draft: SMMDraft, platformName: string, postUrl?: string): PublishResult {
-  addLog('info', `Draft ID ${draft.id} successfully published to ${platformName}. URL: ${postUrl || 'N/A'}`);
+async function handlePublishSuccess(draft: SMMDraft, platformName: string, postUrl?: string): Promise<PublishResult> {
+  await addLog('info', `Draft ID ${draft.id} successfully published to ${platformName}. URL: ${postUrl || 'N/A'}`);
   
   draft.status = 'published';
   draft.publishedAt = new Date().toISOString();
@@ -292,7 +286,7 @@ function handlePublishSuccess(draft: SMMDraft, platformName: string, postUrl?: s
     draft.imageUrls = draft.imageUrls || [];
     draft.error = undefined;
   }
-  saveDraft(draft);
+  await saveDraft(draft);
 
   return {
     success: true,
@@ -301,7 +295,7 @@ function handlePublishSuccess(draft: SMMDraft, platformName: string, postUrl?: s
   };
 }
 
-function mockPublishSuccess(draft: SMMDraft, platformName: string): PublishResult {
+async function mockPublishSuccess(draft: SMMDraft, platformName: string): Promise<PublishResult> {
   const mockUrls: Record<string, string> = {
     'Twitter/X': 'https://twitter.com/mock_status/123456789',
     'LinkedIn': 'https://www.linkedin.com/feed/update/mock_share_urn',
@@ -315,6 +309,6 @@ function mockPublishSuccess(draft: SMMDraft, platformName: string): PublishResul
 
   const url = mockUrls[platformName] || 'https://mock-publish.com';
   
-  addLog('warn', `[Test Mode] API credentials missing for ${platformName}. Simulating successful post.`);
-  return handlePublishSuccess(draft, `${platformName} (Test Mode)`, url);
+  await addLog('warn', `[Test Mode] API credentials missing for ${platformName}. Simulating successful post.`);
+  return await handlePublishSuccess(draft, `${platformName} (Test Mode)`, url);
 }

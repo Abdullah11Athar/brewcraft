@@ -44,4 +44,5 @@ next-env.d.ts
 
 # local databases and private configuration keys
 /data/smm-db.json
+/security-tools/
 
